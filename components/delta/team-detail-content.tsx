@@ -2,9 +2,9 @@
 
 import Link from 'next/link'
 import { TeamWithStats } from '@/domain/teams/actions'
-import { DeltaSessionWithStats, getAngleInfo, ANGLES } from '@/domain/delta/types'
+import { DeltaSessionWithStats, getAngleInfo } from '@/domain/delta/types'
 import { TeamStats } from '@/domain/delta/actions'
-import { Card, CardContent, CardHeader } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { TeamSettings } from '@/components/admin/team-settings'
 import { TeamActions } from '@/components/admin/team-actions'
@@ -77,13 +77,13 @@ export function TeamDetailContent({ team, sessions, stats }: TeamDetailContentPr
       {/* Team Stats Overview */}
       {stats.totalSessions > 0 && (
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
-          {/* Overall Score */}
+          {/* Health Score */}
           <Card className={`${getScoreBg(stats.averageScore)} border-0`}>
             <CardContent className="py-4 text-center">
               <div className={`text-3xl font-bold ${getScoreColor(stats.averageScore)}`}>
                 {stats.averageScore !== null ? stats.averageScore.toFixed(1) : '—'}
               </div>
-              <div className="text-xs text-stone-500 mt-1">Overall Score</div>
+              <div className="text-xs text-stone-500 mt-1">Health Score</div>
             </CardContent>
           </Card>
 
@@ -117,46 +117,6 @@ export function TeamDetailContent({ team, sessions, stats }: TeamDetailContentPr
             </CardContent>
           </Card>
         </div>
-      )}
-
-      {/* Scores by Angle */}
-      {Object.keys(stats.sessionsByAngle).length > 0 && (
-        <Card className="mb-8">
-          <CardHeader>
-            <h2 className="text-lg font-semibold text-stone-900">Scores by Angle</h2>
-            <p className="text-sm text-stone-500">Average scores from completed sessions</p>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-              {ANGLES.filter(angle => stats.sessionsByAngle[angle.id]).map(angle => {
-                const angleStats = stats.sessionsByAngle[angle.id]
-                return (
-                  <div
-                    key={angle.id}
-                    className={`flex items-center gap-3 p-3 rounded-lg ${getScoreBg(angleStats.avgScore)}`}
-                  >
-                    <div className={`w-12 h-12 rounded-lg flex items-center justify-center text-white text-lg font-bold ${
-                      angleStats.avgScore !== null
-                        ? angleStats.avgScore >= 4 ? 'bg-green-500'
-                        : angleStats.avgScore >= 3 ? 'bg-cyan-500'
-                        : angleStats.avgScore >= 2 ? 'bg-amber-500'
-                        : 'bg-red-500'
-                        : 'bg-stone-300'
-                    }`}>
-                      {angleStats.avgScore !== null ? angleStats.avgScore.toFixed(1) : '—'}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="font-medium text-stone-900 truncate">{angle.label}</div>
-                      <div className="text-xs text-stone-500">
-                        {angleStats.count} session{angleStats.count !== 1 ? 's' : ''}
-                      </div>
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-          </CardContent>
-        </Card>
       )}
 
       {/* New Delta Session CTA */}
@@ -244,12 +204,17 @@ function SessionCard({ session }: { session: DeltaSessionWithStats }) {
       <Card className="card-hover cursor-pointer">
         <CardContent className="py-4">
           <div className="flex items-center gap-4">
-            {/* Score or angle icon */}
-            <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-white font-bold flex-shrink-0 ${getScoreBgColor(session.overall_score)}`}>
-              {hasScore ? (
-                <span className="text-lg">{session.overall_score!.toFixed(1)}</span>
-              ) : (
-                <span className="text-xl">{angleInfo.label.charAt(0)}</span>
+            {/* Health score or angle icon */}
+            <div className="flex flex-col items-center shrink-0">
+              <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-white font-bold ${getScoreBgColor(session.overall_score)}`}>
+                {hasScore ? (
+                  <span className="text-lg">{session.overall_score!.toFixed(1)}</span>
+                ) : (
+                  <span className="text-xl">{angleInfo.label.charAt(0)}</span>
+                )}
+              </div>
+              {hasScore && (
+                <span className="text-[10px] text-stone-400 mt-1">health</span>
               )}
             </div>
 
@@ -281,7 +246,7 @@ function SessionCard({ session }: { session: DeltaSessionWithStats }) {
             </div>
 
             {/* Arrow */}
-            <svg className="w-5 h-5 text-stone-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-5 h-5 text-stone-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
             </svg>
           </div>
