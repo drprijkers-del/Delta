@@ -79,6 +79,153 @@ export async function getTeamSessions(teamId: string): Promise<DeltaSessionWithS
 }
 
 /**
+ * Team-level statistics
+ */
+export interface TeamStats {
+  totalSessions: number
+  activeSessions: number
+  closedSessions: number
+  totalResponses: number
+  averageScore: number | null  // Average across all closed sessions
+  sessionsByAngle: Record<string, { count: number; avgScore: number | null }>
+}
+
+/**
+ * Get aggregated team statistics
+ */
+export async function getTeamStats(teamId: string): Promise<TeamStats> {
+  const adminUser = await requireAdmin()
+  const supabase = await createClient()
+
+  // Verify team ownership
+  const { data: team } = await supabase
+    .from('teams')
+    .select('owner_id')
+    .eq('id', teamId)
+    .single()
+
+  if (!team) {
+    return {
+      totalSessions: 0,
+      activeSessions: 0,
+      closedSessions: 0,
+      totalResponses: 0,
+      averageScore: null,
+      sessionsByAngle: {},
+    }
+  }
+
+  if (adminUser.role !== 'super_admin' && team.owner_id !== adminUser.id) {
+    return {
+      totalSessions: 0,
+      activeSessions: 0,
+      closedSessions: 0,
+      totalResponses: 0,
+      averageScore: null,
+      sessionsByAngle: {},
+    }
+  }
+
+  // Get all sessions for this team
+  const { data: sessions } = await supabase
+    .from('delta_sessions')
+    .select('id, angle, status')
+    .eq('team_id', teamId)
+
+  if (!sessions || sessions.length === 0) {
+    return {
+      totalSessions: 0,
+      activeSessions: 0,
+      closedSessions: 0,
+      totalResponses: 0,
+      averageScore: null,
+      sessionsByAngle: {},
+    }
+  }
+
+  const activeSessions = sessions.filter(s => s.status === 'active').length
+  const closedSessions = sessions.filter(s => s.status === 'closed').length
+
+  // Get total response count
+  const sessionIds = sessions.map(s => s.id)
+  const { count: totalResponses } = await supabase
+    .from('delta_responses')
+    .select('*', { count: 'exact', head: true })
+    .in('session_id', sessionIds)
+
+  // Calculate scores for closed sessions with 3+ responses
+  const closedSessionIds = sessions.filter(s => s.status === 'closed').map(s => s.id)
+  const sessionScores: { sessionId: string; angle: string; score: number }[] = []
+
+  for (const sessionId of closedSessionIds) {
+    // Get responses for this session
+    const { data: responses } = await supabase.rpc('get_delta_responses', {
+      p_session_id: sessionId,
+    })
+
+    if (responses && responses.length >= 3) {
+      // Get session angle
+      const session = sessions.find(s => s.id === sessionId)
+      if (!session) continue
+
+      // Calculate average score across all answers
+      let totalScore = 0
+      let scoreCount = 0
+
+      for (const response of responses as { answers: Record<string, number> }[]) {
+        for (const score of Object.values(response.answers)) {
+          if (typeof score === 'number' && score >= 1 && score <= 5) {
+            totalScore += score
+            scoreCount++
+          }
+        }
+      }
+
+      if (scoreCount > 0) {
+        sessionScores.push({
+          sessionId,
+          angle: session.angle,
+          score: totalScore / scoreCount,
+        })
+      }
+    }
+  }
+
+  // Calculate overall average score
+  const averageScore = sessionScores.length > 0
+    ? Math.round((sessionScores.reduce((sum, s) => sum + s.score, 0) / sessionScores.length) * 10) / 10
+    : null
+
+  // Group by angle
+  const sessionsByAngle: Record<string, { count: number; avgScore: number | null }> = {}
+
+  for (const session of sessions) {
+    if (!sessionsByAngle[session.angle]) {
+      sessionsByAngle[session.angle] = { count: 0, avgScore: null }
+    }
+    sessionsByAngle[session.angle].count++
+  }
+
+  // Add average scores per angle
+  for (const angle of Object.keys(sessionsByAngle)) {
+    const angleScores = sessionScores.filter(s => s.angle === angle)
+    if (angleScores.length > 0) {
+      sessionsByAngle[angle].avgScore =
+        Math.round((angleScores.reduce((sum, s) => sum + s.score, 0) / angleScores.length) * 10) / 10
+    }
+  }
+
+  return {
+    totalSessions: sessions.length,
+    activeSessions,
+    closedSessions,
+    totalResponses: totalResponses || 0,
+    averageScore,
+    sessionsByAngle,
+  }
+}
+
+/**
  * Get a single session by ID
  */
 export async function getSession(sessionId: string): Promise<DeltaSessionWithStats | null> {

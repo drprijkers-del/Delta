@@ -2,7 +2,8 @@
 
 import Link from 'next/link'
 import { TeamWithStats } from '@/domain/teams/actions'
-import { DeltaSessionWithStats, getAngleInfo } from '@/domain/delta/types'
+import { DeltaSessionWithStats, getAngleInfo, ANGLES } from '@/domain/delta/types'
+import { TeamStats } from '@/domain/delta/actions'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { TeamSettings } from '@/components/admin/team-settings'
@@ -12,15 +13,33 @@ import { useTranslation, useLanguage } from '@/lib/i18n/context'
 interface TeamDetailContentProps {
   team: TeamWithStats
   sessions: DeltaSessionWithStats[]
+  stats: TeamStats
 }
 
-export function TeamDetailContent({ team, sessions }: TeamDetailContentProps) {
+export function TeamDetailContent({ team, sessions, stats }: TeamDetailContentProps) {
   const t = useTranslation()
   const { language } = useLanguage()
   const dateLocale = language === 'nl' ? 'nl-NL' : 'en-US'
 
   const activeSessions = sessions.filter(s => s.status === 'active')
   const closedSessions = sessions.filter(s => s.status === 'closed')
+
+  // Get score color
+  const getScoreColor = (score: number | null) => {
+    if (score === null) return 'text-stone-400'
+    if (score >= 4) return 'text-green-600'
+    if (score >= 3) return 'text-cyan-600'
+    if (score >= 2) return 'text-amber-600'
+    return 'text-red-600'
+  }
+
+  const getScoreBg = (score: number | null) => {
+    if (score === null) return 'bg-stone-100'
+    if (score >= 4) return 'bg-green-50'
+    if (score >= 3) return 'bg-cyan-50'
+    if (score >= 2) return 'bg-amber-50'
+    return 'bg-red-50'
+  }
 
   return (
     <main className="max-w-4xl mx-auto px-4 py-8">
@@ -54,6 +73,91 @@ export function TeamDetailContent({ team, sessions }: TeamDetailContentProps) {
           <TeamActions team={team} />
         </div>
       </div>
+
+      {/* Team Stats Overview */}
+      {stats.totalSessions > 0 && (
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
+          {/* Overall Score */}
+          <Card className={`${getScoreBg(stats.averageScore)} border-0`}>
+            <CardContent className="py-4 text-center">
+              <div className={`text-3xl font-bold ${getScoreColor(stats.averageScore)}`}>
+                {stats.averageScore !== null ? stats.averageScore.toFixed(1) : '—'}
+              </div>
+              <div className="text-xs text-stone-500 mt-1">Overall Score</div>
+            </CardContent>
+          </Card>
+
+          {/* Total Sessions */}
+          <Card className="bg-stone-50 border-0">
+            <CardContent className="py-4 text-center">
+              <div className="text-3xl font-bold text-stone-700">
+                {stats.totalSessions}
+              </div>
+              <div className="text-xs text-stone-500 mt-1">Sessions</div>
+            </CardContent>
+          </Card>
+
+          {/* Total Responses */}
+          <Card className="bg-stone-50 border-0">
+            <CardContent className="py-4 text-center">
+              <div className="text-3xl font-bold text-stone-700">
+                {stats.totalResponses}
+              </div>
+              <div className="text-xs text-stone-500 mt-1">Responses</div>
+            </CardContent>
+          </Card>
+
+          {/* Active Sessions */}
+          <Card className={stats.activeSessions > 0 ? 'bg-cyan-50 border-0' : 'bg-stone-50 border-0'}>
+            <CardContent className="py-4 text-center">
+              <div className={`text-3xl font-bold ${stats.activeSessions > 0 ? 'text-cyan-600' : 'text-stone-400'}`}>
+                {stats.activeSessions}
+              </div>
+              <div className="text-xs text-stone-500 mt-1">Active</div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* Scores by Angle */}
+      {Object.keys(stats.sessionsByAngle).length > 0 && (
+        <Card className="mb-8">
+          <CardHeader>
+            <h2 className="text-lg font-semibold text-stone-900">Scores by Angle</h2>
+            <p className="text-sm text-stone-500">Average scores from completed sessions</p>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              {ANGLES.filter(angle => stats.sessionsByAngle[angle.id]).map(angle => {
+                const angleStats = stats.sessionsByAngle[angle.id]
+                return (
+                  <div
+                    key={angle.id}
+                    className={`flex items-center gap-3 p-3 rounded-lg ${getScoreBg(angleStats.avgScore)}`}
+                  >
+                    <div className={`w-12 h-12 rounded-lg flex items-center justify-center text-white text-lg font-bold ${
+                      angleStats.avgScore !== null
+                        ? angleStats.avgScore >= 4 ? 'bg-green-500'
+                        : angleStats.avgScore >= 3 ? 'bg-cyan-500'
+                        : angleStats.avgScore >= 2 ? 'bg-amber-500'
+                        : 'bg-red-500'
+                        : 'bg-stone-300'
+                    }`}>
+                      {angleStats.avgScore !== null ? angleStats.avgScore.toFixed(1) : '—'}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="font-medium text-stone-900 truncate">{angle.label}</div>
+                      <div className="text-xs text-stone-500">
+                        {angleStats.count} session{angleStats.count !== 1 ? 's' : ''}
+                      </div>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* New Delta Session CTA */}
       <Card className="mb-8 border-cyan-200 bg-gradient-to-r from-cyan-50 to-white">
