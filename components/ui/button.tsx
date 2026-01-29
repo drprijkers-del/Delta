@@ -14,9 +14,9 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     const baseStyles = 'inline-flex items-center justify-center font-medium transition-all duration-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed'
 
     const variants = {
-      primary: 'bg-stone-900 text-white hover:bg-stone-800 focus:ring-stone-500',
-      secondary: 'bg-white text-stone-600 border border-stone-200 hover:border-stone-300 hover:bg-stone-50 focus:ring-stone-500',
-      ghost: 'bg-transparent text-stone-500 hover:text-stone-700 hover:bg-stone-100 focus:ring-stone-500',
+      primary: 'bg-cyan-500 text-white hover:bg-cyan-600 focus:ring-cyan-500',
+      secondary: 'bg-white text-stone-600 border border-stone-200 hover:border-stone-300 hover:bg-stone-50 focus:ring-cyan-500',
+      ghost: 'bg-transparent text-stone-500 hover:text-stone-700 hover:bg-stone-100 focus:ring-cyan-500',
       danger: 'bg-red-50 text-red-600 border border-red-200 hover:bg-red-100 focus:ring-red-500',
     }
 
