@@ -3,7 +3,8 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { DeltaSessionWithStats, SynthesisResult, StatementScore, getAngleInfo } from '@/domain/delta/types'
+import { DeltaSessionWithStats, SynthesisResult, StatementScore, getAngleInfo, DeltaAngle } from '@/domain/delta/types'
+import { getStatements } from '@/domain/delta/statements'
 import { closeSession, deleteSession } from '@/domain/delta/actions'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -136,6 +137,30 @@ export function SessionDetailContent({ session, synthesis, shareLink }: SessionD
                 : `${session.response_count} response${session.response_count !== 1 ? 's' : ''} so far. Need at least 3 for synthesis.`
               }
             </p>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Statement preview (when < 3 responses) */}
+      {isActive && session.response_count < 3 && (
+        <Card className="mb-8">
+          <CardHeader>
+            <h2 className="text-lg font-semibold text-stone-900">Statements Preview</h2>
+            <p className="text-sm text-stone-500">These are the {getStatements(session.angle as DeltaAngle).length} statements your team will respond to.</p>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {getStatements(session.angle as DeltaAngle).map((statement, i) => (
+              <div key={statement.id} className="p-3 rounded-lg bg-stone-50">
+                <div className="flex items-start gap-3">
+                  <div className="w-10 h-10 rounded-lg bg-stone-200 text-stone-400 flex items-center justify-center text-sm font-bold shrink-0">
+                    —
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-stone-600 text-sm leading-relaxed">{statement.text}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
           </CardContent>
         </Card>
       )}
