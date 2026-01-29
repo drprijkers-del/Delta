@@ -54,6 +54,7 @@ export interface DeltaSession {
 export interface DeltaSessionWithStats extends DeltaSession {
   response_count: number
   team_name?: string
+  overall_score?: number | null  // Average score (1-5), null if < 3 responses
 }
 
 // Individual response (anonymous)

@@ -60,7 +60,7 @@ export async function getTeamSessions(teamId: string): Promise<DeltaSessionWithS
 
   if (error || !sessions) return []
 
-  // Get response counts for each session
+  // Get response counts and scores for each session
   const sessionsWithStats: DeltaSessionWithStats[] = await Promise.all(
     sessions.map(async (session) => {
       const { count } = await supabase
@@ -68,9 +68,38 @@ export async function getTeamSessions(teamId: string): Promise<DeltaSessionWithS
         .select('*', { count: 'exact', head: true })
         .eq('session_id', session.id)
 
+      const responseCount = count || 0
+
+      // Calculate overall score if we have 3+ responses
+      let overallScore: number | null = null
+      if (responseCount >= 3) {
+        const { data: responses } = await supabase.rpc('get_delta_responses', {
+          p_session_id: session.id,
+        })
+
+        if (responses && responses.length >= 3) {
+          let totalScore = 0
+          let scoreCount = 0
+
+          for (const response of responses as { answers: Record<string, number> }[]) {
+            for (const score of Object.values(response.answers)) {
+              if (typeof score === 'number' && score >= 1 && score <= 5) {
+                totalScore += score
+                scoreCount++
+              }
+            }
+          }
+
+          if (scoreCount > 0) {
+            overallScore = Math.round((totalScore / scoreCount) * 10) / 10
+          }
+        }
+      }
+
       return {
         ...session,
-        response_count: count || 0,
+        response_count: responseCount,
+        overall_score: overallScore,
       } as DeltaSessionWithStats
     })
   )

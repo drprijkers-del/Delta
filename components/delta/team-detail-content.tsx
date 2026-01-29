@@ -226,17 +226,31 @@ function SessionCard({ session }: { session: DeltaSessionWithStats }) {
   const angleInfo = getAngleInfo(session.angle)
   const isActive = session.status === 'active'
   const isClosed = session.status === 'closed'
+  const hasScore = session.overall_score !== null && session.overall_score !== undefined
+
+  // Score-based colors
+  const getScoreBgColor = (score: number | null | undefined) => {
+    if (score === null || score === undefined) {
+      return isActive ? 'bg-gradient-to-br from-cyan-400 to-cyan-600' : 'bg-stone-300'
+    }
+    if (score >= 4) return 'bg-green-500'
+    if (score >= 3) return 'bg-cyan-500'
+    if (score >= 2) return 'bg-amber-500'
+    return 'bg-red-500'
+  }
 
   return (
     <Link href={`/app/delta/${session.id}`}>
       <Card className="card-hover cursor-pointer">
         <CardContent className="py-4">
           <div className="flex items-center gap-4">
-            {/* Angle icon */}
-            <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-white text-xl font-bold flex-shrink-0 ${
-              isActive ? 'bg-gradient-to-br from-cyan-400 to-cyan-600' : 'bg-stone-300'
-            }`}>
-              {angleInfo.label.charAt(0)}
+            {/* Score or angle icon */}
+            <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-white font-bold flex-shrink-0 ${getScoreBgColor(session.overall_score)}`}>
+              {hasScore ? (
+                <span className="text-lg">{session.overall_score!.toFixed(1)}</span>
+              ) : (
+                <span className="text-xl">{angleInfo.label.charAt(0)}</span>
+              )}
             </div>
 
             {/* Session info */}
