@@ -12,19 +12,15 @@ export interface Team {
   slug: string
   description: string | null
   owner_id: string | null
-  expected_team_size: number | null // Optional: for accurate participation %
+  expected_team_size: number | null
+  app_type: 'pulse' | 'delta'
   created_at: string
   updated_at: string
 }
 
 export interface TeamWithStats extends Team {
-  participantCount: number        // People who have checked in at least once
-  effectiveTeamSize: number       // expected_team_size or participantCount
-  todayEntries: number
-  activeLink?: {
-    id: string
-    token?: string // Only included when newly created
-  }
+  sessionCount: number           // Total Delta sessions
+  activeSessionCount: number     // Currently active sessions
 }
 
 // Helper to verify team ownership
@@ -46,10 +42,11 @@ export async function getTeams(): Promise<TeamWithStats[]> {
   const adminUser = await requireAdmin()
   const supabase = await createClient()
 
-  // Build query - filter by owner unless super admin
+  // Build query - only show Delta teams, filter by owner unless super admin
   let query = supabase
     .from('teams')
     .select('*')
+    .eq('app_type', 'delta')
     .order('created_at', { ascending: false })
 
   // If not super_admin, filter by owner_id
@@ -64,32 +61,21 @@ export async function getTeams(): Promise<TeamWithStats[]> {
   // Get stats for each team
   const teamsWithStats: TeamWithStats[] = await Promise.all(
     (teams || []).map(async (team) => {
-      const { count: participantCount } = await supabase
-        .from('participants')
+      const { count: sessionCount } = await supabase
+        .from('delta_sessions')
         .select('*', { count: 'exact', head: true })
         .eq('team_id', team.id)
 
-      const { count: todayEntries } = await supabase
-        .from('mood_entries')
+      const { count: activeSessionCount } = await supabase
+        .from('delta_sessions')
         .select('*', { count: 'exact', head: true })
         .eq('team_id', team.id)
-        .eq('entry_date', new Date().toISOString().split('T')[0])
-
-      const { data: activeLink } = await supabase
-        .from('invite_links')
-        .select('id')
-        .eq('team_id', team.id)
-        .eq('is_active', true)
-        .single()
-
-      const actualParticipants = participantCount || 0
+        .eq('status', 'active')
 
       return {
         ...team,
-        participantCount: actualParticipants,
-        effectiveTeamSize: team.expected_team_size || actualParticipants,
-        todayEntries: todayEntries || 0,
-        activeLink: activeLink || undefined,
+        sessionCount: sessionCount || 0,
+        activeSessionCount: activeSessionCount || 0,
       }
     })
   )
@@ -105,6 +91,7 @@ export async function getTeam(id: string): Promise<TeamWithStats | null> {
     .from('teams')
     .select('*')
     .eq('id', id)
+    .eq('app_type', 'delta')
     .single()
 
   if (error || !team) return null
@@ -114,32 +101,21 @@ export async function getTeam(id: string): Promise<TeamWithStats | null> {
     return null
   }
 
-  const { count: participantCount } = await supabase
-    .from('participants')
+  const { count: sessionCount } = await supabase
+    .from('delta_sessions')
     .select('*', { count: 'exact', head: true })
     .eq('team_id', team.id)
 
-  const { count: todayEntries } = await supabase
-    .from('mood_entries')
+  const { count: activeSessionCount } = await supabase
+    .from('delta_sessions')
     .select('*', { count: 'exact', head: true })
     .eq('team_id', team.id)
-    .eq('entry_date', new Date().toISOString().split('T')[0])
-
-  const { data: activeLink } = await supabase
-    .from('invite_links')
-    .select('id')
-    .eq('team_id', team.id)
-    .eq('is_active', true)
-    .single()
-
-  const actualParticipants = participantCount || 0
+    .eq('status', 'active')
 
   return {
     ...team,
-    participantCount: actualParticipants,
-    effectiveTeamSize: team.expected_team_size || actualParticipants,
-    todayEntries: todayEntries || 0,
-    activeLink: activeLink || undefined,
+    sessionCount: sessionCount || 0,
+    activeSessionCount: activeSessionCount || 0,
   }
 }
 
@@ -174,7 +150,7 @@ export async function createTeam(formData: FormData): Promise<{ success: boolean
     return { success: false, error: 'A team with this name already exists' }
   }
 
-  // Create team with owner_id
+  // Create team with owner_id and app_type
   const { data: team, error } = await supabase
     .from('teams')
     .insert({
@@ -183,6 +159,7 @@ export async function createTeam(formData: FormData): Promise<{ success: boolean
       description: description?.trim() || null,
       owner_id: adminUser.id,
       expected_team_size: expectedTeamSize,
+      app_type: 'delta',
     })
     .select()
     .single()

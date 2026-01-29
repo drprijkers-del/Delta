@@ -26,7 +26,35 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next()
   }
 
-  // Handle admin routes - require authentication
+  // Handle /app routes - require authentication (Delta protected routes)
+  if (pathname.startsWith('/app')) {
+    // First check for password session cookie
+    const passwordSession = request.cookies.get('admin_password_session')?.value
+    if (passwordSession) {
+      try {
+        const session = JSON.parse(passwordSession)
+        if (session.exp > Date.now()) {
+          // Valid password session, allow through
+          return NextResponse.next()
+        }
+      } catch {
+        // Invalid session, continue to check Supabase session
+      }
+    }
+
+    // Check Supabase session
+    const { user, supabaseResponse } = await updateSession(request)
+
+    if (!user) {
+      const loginUrl = new URL('/admin/login', request.url)
+      loginUrl.searchParams.set('redirect', pathname)
+      return NextResponse.redirect(loginUrl)
+    }
+
+    return supabaseResponse
+  }
+
+  // Handle legacy admin routes - require authentication
   if (pathname.startsWith('/admin') && !pathname.startsWith('/admin/login')) {
     // First check for password session cookie
     const passwordSession = request.cookies.get('admin_password_session')?.value

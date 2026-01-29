@@ -22,12 +22,9 @@ export function AdminHeader() {
     <header className="bg-white border-b border-stone-200" role="banner">
       <nav className="max-w-4xl mx-auto px-4" aria-label="Main navigation">
         <div className="flex items-center justify-between h-16">
-          <Link href="/admin/teams" className="flex items-center gap-2" aria-label="Pulse Admin - Go to teams">
-            <span className="text-2xl" aria-hidden="true">⚗️</span>
-            <span className="font-bold text-lg text-stone-900">{t('pulse')}</span>
-            <span className="text-xs bg-cyan-50 text-cyan-600 px-2 py-0.5 rounded-full font-medium">
-              {t('admin')}
-            </span>
+          <Link href="/app/teams" className="flex items-center gap-2" aria-label="Delta - Go to teams">
+            <span className="text-2xl font-bold text-cyan-500" aria-hidden="true">Δ</span>
+            <span className="font-bold text-lg text-stone-900">Delta</span>
           </Link>
 
           <div className="flex items-center gap-3">

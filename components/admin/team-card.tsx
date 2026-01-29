@@ -3,17 +3,14 @@
 import Link from 'next/link'
 import { TeamWithStats } from '@/domain/teams/actions'
 import { Card, CardContent } from '@/components/ui/card'
-import { useTranslation } from '@/lib/i18n/context'
 
 interface TeamCardProps {
   team: TeamWithStats
 }
 
 export function TeamCard({ team }: TeamCardProps) {
-  const t = useTranslation()
-
   return (
-    <Link href={`/admin/teams/${team.id}`} aria-label={`View team ${team.name}`}>
+    <Link href={`/app/teams/${team.id}`} aria-label={`View team ${team.name}`}>
       <Card className="card-hover cursor-pointer">
         <CardContent className="py-4">
           <div className="flex items-center gap-3 sm:gap-4">
@@ -26,14 +23,14 @@ export function TeamCard({ team }: TeamCardProps) {
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2">
                 <h3 className="font-semibold text-stone-900 truncate">{team.name}</h3>
-                {team.activeLink && (
-                  <span className="text-xs bg-green-100 text-green-600 px-2 py-0.5 rounded-full flex-shrink-0 hidden sm:inline">
-                    {t('adminActive')}
+                {team.activeSessionCount > 0 && (
+                  <span className="text-xs bg-cyan-100 text-cyan-700 px-2 py-0.5 rounded-full flex-shrink-0 hidden sm:inline">
+                    {team.activeSessionCount} active
                   </span>
                 )}
               </div>
               <p className="text-sm text-stone-500">
-                {team.participantCount} {t('adminParticipants')} • {team.todayEntries} {t('adminToday')}
+                {team.sessionCount} session{team.sessionCount !== 1 ? 's' : ''}
               </p>
             </div>
 

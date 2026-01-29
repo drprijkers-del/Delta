@@ -9,8 +9,8 @@ const geist = Geist({
 });
 
 export const metadata: Metadata = {
-  title: "Pulse | Pink Pollos Lab",
-  description: "Team signals in one click - A Pink Pollos Lab tool",
+  title: "Delta | Agile Interventions",
+  description: "Time-boxed Agile interventions. One focus, one experiment, one owner.",
 };
 
 export default function RootLayout({

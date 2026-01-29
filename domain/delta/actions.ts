@@ -1,0 +1,610 @@
+'use server'
+
+import { createClient, createAdminClient } from '@/lib/supabase/server'
+import { requireAdmin, AdminUser } from '@/lib/auth/admin'
+import { revalidatePath } from 'next/cache'
+import {
+  DeltaSession,
+  DeltaSessionWithStats,
+  DeltaAngle,
+  ResponseAnswers,
+  SynthesisResult,
+  StatementScore,
+  ScoreDistribution,
+} from './types'
+import { getStatements, getStatementById } from './statements'
+
+// ============================================
+// SESSION MANAGEMENT (Admin)
+// ============================================
+
+/**
+ * Verify the admin owns the team for a session
+ */
+async function verifySessionOwnership(sessionId: string, adminUser: AdminUser): Promise<boolean> {
+  if (adminUser.role === 'super_admin') return true
+
+  const supabase = await createClient()
+  const { data } = await supabase
+    .from('delta_sessions')
+    .select('team_id, teams!inner(owner_id)')
+    .eq('id', sessionId)
+    .single()
+
+  return (data as { teams: { owner_id: string } } | null)?.teams?.owner_id === adminUser.id
+}
+
+/**
+ * Get all sessions for a team
+ */
+export async function getTeamSessions(teamId: string): Promise<DeltaSessionWithStats[]> {
+  const adminUser = await requireAdmin()
+  const supabase = await createClient()
+
+  // Verify team ownership
+  const { data: team } = await supabase
+    .from('teams')
+    .select('owner_id')
+    .eq('id', teamId)
+    .single()
+
+  if (!team) return []
+  if (adminUser.role !== 'super_admin' && team.owner_id !== adminUser.id) return []
+
+  // Get sessions with response counts
+  const { data: sessions, error } = await supabase
+    .from('delta_sessions')
+    .select('*')
+    .eq('team_id', teamId)
+    .order('created_at', { ascending: false })
+
+  if (error || !sessions) return []
+
+  // Get response counts for each session
+  const sessionsWithStats: DeltaSessionWithStats[] = await Promise.all(
+    sessions.map(async (session) => {
+      const { count } = await supabase
+        .from('delta_responses')
+        .select('*', { count: 'exact', head: true })
+        .eq('session_id', session.id)
+
+      return {
+        ...session,
+        response_count: count || 0,
+      } as DeltaSessionWithStats
+    })
+  )
+
+  return sessionsWithStats
+}
+
+/**
+ * Get a single session by ID
+ */
+export async function getSession(sessionId: string): Promise<DeltaSessionWithStats | null> {
+  const adminUser = await requireAdmin()
+  const supabase = await createClient()
+
+  const { data: session, error } = await supabase
+    .from('delta_sessions')
+    .select('*, teams(name)')
+    .eq('id', sessionId)
+    .single()
+
+  if (error || !session) return null
+
+  // Verify ownership
+  if (!(await verifySessionOwnership(sessionId, adminUser))) {
+    return null
+  }
+
+  // Get response count
+  const { count } = await supabase
+    .from('delta_responses')
+    .select('*', { count: 'exact', head: true })
+    .eq('session_id', sessionId)
+
+  return {
+    ...session,
+    response_count: count || 0,
+    team_name: (session as { teams?: { name: string } }).teams?.name,
+  } as DeltaSessionWithStats
+}
+
+/**
+ * Create a new Delta session
+ */
+export async function createSession(
+  teamId: string,
+  angle: DeltaAngle,
+  title?: string
+): Promise<{ success: boolean; sessionId?: string; error?: string }> {
+  const adminUser = await requireAdmin()
+  const supabase = await createAdminClient()
+
+  // Verify team ownership
+  const { data: team } = await supabase
+    .from('teams')
+    .select('owner_id')
+    .eq('id', teamId)
+    .single()
+
+  if (!team) {
+    return { success: false, error: 'Team not found' }
+  }
+
+  if (adminUser.role !== 'super_admin' && team.owner_id !== adminUser.id) {
+    return { success: false, error: 'Access denied' }
+  }
+
+  // Generate session code
+  const { data: sessionCode } = await supabase.rpc('generate_session_code')
+
+  if (!sessionCode) {
+    return { success: false, error: 'Failed to generate session code' }
+  }
+
+  // Create session
+  const { data: session, error } = await supabase
+    .from('delta_sessions')
+    .insert({
+      team_id: teamId,
+      session_code: sessionCode,
+      angle,
+      title: title || null,
+      status: 'active',  // Start active immediately
+      created_by: adminUser.id,
+    })
+    .select()
+    .single()
+
+  if (error) {
+    return { success: false, error: error.message }
+  }
+
+  revalidatePath(`/app/teams/${teamId}`)
+
+  return { success: true, sessionId: session.id }
+}
+
+/**
+ * Close a session with outcome
+ */
+export async function closeSession(
+  sessionId: string,
+  focusArea: string,
+  experiment: string,
+  experimentOwner: string,
+  followupDate: string
+): Promise<{ success: boolean; error?: string }> {
+  const adminUser = await requireAdmin()
+  const supabase = await createClient()
+
+  // Verify ownership
+  if (!(await verifySessionOwnership(sessionId, adminUser))) {
+    return { success: false, error: 'Access denied' }
+  }
+
+  // Update session
+  const { error } = await supabase
+    .from('delta_sessions')
+    .update({
+      status: 'closed',
+      focus_area: focusArea,
+      experiment,
+      experiment_owner: experimentOwner,
+      followup_date: followupDate,
+      closed_at: new Date().toISOString(),
+    })
+    .eq('id', sessionId)
+
+  if (error) {
+    return { success: false, error: error.message }
+  }
+
+  revalidatePath(`/app/delta/${sessionId}`)
+
+  return { success: true }
+}
+
+/**
+ * Delete a session (admin only)
+ */
+export async function deleteSession(sessionId: string): Promise<{ success: boolean; error?: string }> {
+  const adminUser = await requireAdmin()
+  const supabase = await createClient()
+
+  // Get session to find team_id for revalidation
+  const { data: session } = await supabase
+    .from('delta_sessions')
+    .select('team_id')
+    .eq('id', sessionId)
+    .single()
+
+  if (!session) {
+    return { success: false, error: 'Session not found' }
+  }
+
+  // Verify ownership
+  if (!(await verifySessionOwnership(sessionId, adminUser))) {
+    return { success: false, error: 'Access denied' }
+  }
+
+  // Delete session (responses cascade)
+  const { error } = await supabase
+    .from('delta_sessions')
+    .delete()
+    .eq('id', sessionId)
+
+  if (error) {
+    return { success: false, error: error.message }
+  }
+
+  revalidatePath(`/app/teams/${session.team_id}`)
+
+  return { success: true }
+}
+
+// ============================================
+// PUBLIC PARTICIPATION
+// ============================================
+
+/**
+ * Validate a session code and return session info (public)
+ */
+export async function validateSessionCode(sessionCode: string): Promise<{
+  valid: boolean
+  session?: {
+    id: string
+    team_name: string
+    angle: DeltaAngle
+    title: string | null
+  }
+}> {
+  const supabase = await createClient()
+
+  const { data } = await supabase.rpc('validate_delta_session', {
+    p_session_code: sessionCode,
+  })
+
+  if (!data || data.length === 0) {
+    return { valid: false }
+  }
+
+  const row = data[0]
+  return {
+    valid: true,
+    session: {
+      id: row.session_id,
+      team_name: row.team_name,
+      angle: row.angle as DeltaAngle,
+      title: row.title,
+    },
+  }
+}
+
+/**
+ * Submit a response (public)
+ */
+export async function submitResponse(
+  sessionId: string,
+  deviceId: string,
+  answers: ResponseAnswers
+): Promise<{ success: boolean; error?: string; alreadyResponded?: boolean }> {
+  const supabase = await createClient()
+
+  const { data } = await supabase.rpc('submit_delta_response', {
+    p_session_id: sessionId,
+    p_device_id: deviceId,
+    p_answers: answers,
+  })
+
+  if (!data) {
+    return { success: false, error: 'Failed to submit response' }
+  }
+
+  if (!data.success) {
+    return {
+      success: false,
+      error: data.error,
+      alreadyResponded: data.already_responded,
+    }
+  }
+
+  return { success: true }
+}
+
+/**
+ * Check if device has already responded (public)
+ */
+export async function hasResponded(sessionId: string, deviceId: string): Promise<boolean> {
+  const supabase = await createClient()
+
+  const { data } = await supabase
+    .from('delta_responses')
+    .select('id')
+    .eq('session_id', sessionId)
+    .eq('device_id', deviceId)
+    .single()
+
+  return !!data
+}
+
+// ============================================
+// SYNTHESIS
+// ============================================
+
+/**
+ * Get synthesis for a session (admin only)
+ */
+export async function synthesizeSession(sessionId: string): Promise<SynthesisResult | null> {
+  const adminUser = await requireAdmin()
+  const supabase = await createAdminClient()
+
+  // Verify ownership
+  if (!(await verifySessionOwnership(sessionId, adminUser))) {
+    return null
+  }
+
+  // Get session to know the angle
+  const { data: session } = await supabase
+    .from('delta_sessions')
+    .select('angle')
+    .eq('id', sessionId)
+    .single()
+
+  if (!session) return null
+
+  // Get all responses
+  const { data: responses } = await supabase.rpc('get_delta_responses', {
+    p_session_id: sessionId,
+  })
+
+  if (!responses || responses.length === 0) {
+    return null
+  }
+
+  // Get statements for this angle
+  const statements = getStatements(session.angle as DeltaAngle)
+
+  // Track all scores for overall calculation
+  let allScoresSum = 0
+  let allScoresCount = 0
+
+  // Calculate score, distribution, and variance per statement
+  const scores: StatementScore[] = statements.map(statement => {
+    const statementScores = (responses as { answers: ResponseAnswers }[])
+      .map(r => r.answers[statement.id])
+      .filter((score): score is number => score !== undefined && score !== null)
+
+    // Calculate distribution [1s, 2s, 3s, 4s, 5s]
+    const distribution: ScoreDistribution = [0, 0, 0, 0, 0]
+    statementScores.forEach(score => {
+      if (score >= 1 && score <= 5) {
+        distribution[score - 1]++
+      }
+    })
+
+    // Calculate average
+    const avgScore = statementScores.length > 0
+      ? statementScores.reduce((a, b) => a + b, 0) / statementScores.length
+      : 0
+
+    // Calculate variance (standard deviation)
+    const variance = statementScores.length > 1
+      ? Math.sqrt(
+          statementScores.reduce((sum, score) => sum + Math.pow(score - avgScore, 2), 0) /
+          statementScores.length
+        )
+      : 0
+
+    // Add to overall totals
+    allScoresSum += statementScores.reduce((a, b) => a + b, 0)
+    allScoresCount += statementScores.length
+
+    return {
+      statement,
+      score: Math.round(avgScore * 100) / 100,
+      response_count: statementScores.length,
+      distribution,
+      variance: Math.round(variance * 100) / 100,
+    }
+  })
+
+  // Calculate overall session score
+  const overallScore = allScoresCount > 0
+    ? Math.round((allScoresSum / allScoresCount) * 100) / 100
+    : 0
+
+  // Count statements with high disagreement (variance > 1.0)
+  const disagreementCount = scores.filter(s => s.variance > 1.0).length
+
+  // Sort by score (high to low)
+  const sorted = [...scores].sort((a, b) => b.score - a.score)
+
+  // Top 2 = strengths, Bottom 2 = tensions
+  const strengths = sorted.slice(0, 2)
+  const tensions = sorted.slice(-2).reverse()
+
+  // Derive focus area from lowest tension
+  const lowestTension = tensions[0]
+  const focusArea = deriveFocusArea(lowestTension)
+
+  // Generate experiment suggestion
+  const suggestedExperiment = generateExperiment(lowestTension)
+
+  return {
+    strengths,
+    tensions,
+    all_scores: sorted,
+    overall_score: overallScore,
+    disagreement_count: disagreementCount,
+    focus_area: focusArea,
+    suggested_experiment: suggestedExperiment,
+    response_count: responses.length,
+  }
+}
+
+/**
+ * Derive focus area from the lowest scoring statement
+ */
+function deriveFocusArea(tension: StatementScore): string {
+  // Map statement patterns to focus areas
+  const focusAreas: Record<string, string> = {
+    // Scrum
+    'scrum_1': 'Sprint Goal achievement',
+    'scrum_2': 'Daily Scrum efficiency',
+    'scrum_3': 'Product Owner availability',
+    'scrum_4': 'Sprint scope stability',
+    'scrum_5': 'Retrospective outcomes',
+    'scrum_6': 'Retro action follow-through',
+    'scrum_7': 'Sprint Goal clarity',
+    'scrum_8': 'Stakeholder boundaries',
+    'scrum_9': 'Team autonomy',
+    'scrum_10': 'Scope negotiation',
+
+    // Flow
+    'flow_1': 'Work in Progress limits',
+    'flow_2': 'Cycle time',
+    'flow_3': 'Code review speed',
+    'flow_4': 'Work clarity',
+    'flow_5': 'Blocker resolution',
+    'flow_6': 'WIP discipline',
+    'flow_7': 'Deployment frequency',
+    'flow_8': 'Wait time reduction',
+    'flow_9': 'Board accuracy',
+    'flow_10': 'Focus time protection',
+
+    // Ownership
+    'own_1': 'Deployment autonomy',
+    'own_2': 'Proactive bug fixing',
+    'own_3': 'Technical decision authority',
+    'own_4': 'On-call awareness',
+    'own_5': 'Production access',
+    'own_6': 'Incident learning',
+    'own_7': 'Service creation freedom',
+    'own_8': 'Backlog ownership',
+    'own_9': 'Cross-ownership refactoring',
+    'own_10': 'Blameless culture',
+
+    // Collaboration
+    'collab_1': 'Pair programming',
+    'collab_2': 'Feedback frequency',
+    'collab_3': 'Help-seeking behavior',
+    'collab_4': 'Knowledge sharing',
+    'collab_5': 'Documentation',
+    'collab_6': 'Onboarding speed',
+    'collab_7': 'Conflict resolution',
+    'collab_8': 'Meeting participation',
+    'collab_9': 'Work visibility',
+    'collab_10': 'Team celebration',
+
+    // Technical Excellence
+    'tech_1': 'Test coverage',
+    'tech_2': 'Test suite speed',
+    'tech_3': 'Proactive refactoring',
+    'tech_4': 'Tech debt management',
+    'tech_5': 'Coding standards',
+    'tech_6': 'Local development setup',
+    'tech_7': 'Deployment confidence',
+    'tech_8': 'Rollback capability',
+    'tech_9': 'Documentation maintenance',
+    'tech_10': 'Architecture decisions',
+  }
+
+  return focusAreas[tension.statement.id] || 'Team process improvement'
+}
+
+/**
+ * Generate experiment suggestion based on the tension
+ */
+function generateExperiment(tension: StatementScore): string {
+  // Map statement IDs to specific experiments
+  const experiments: Record<string, string> = {
+    // Scrum
+    'scrum_1': 'For the next Sprint, define the Sprint Goal before selecting any items. Check in on it daily.',
+    'scrum_2': 'Use a timer. Everyone gets 1 minute. If Daily runs over, discuss why in the Retro.',
+    'scrum_3': 'Block 2 hours daily where PO is available for questions. No meetings in this window.',
+    'scrum_4': 'If scope is added after Planning, something of equal size must be removed immediately.',
+    'scrum_5': 'At the end of each Retro, the team votes on exactly ONE action. No more.',
+    'scrum_6': 'Track the action on the board. Review it in the next Retro. If not done, it becomes the only action.',
+    'scrum_7': 'Start each Daily with: "How does today\'s work contribute to the Sprint Goal?"',
+    'scrum_8': 'Create a "stakeholder request" column. Only move items from it during Sprint Planning.',
+    'scrum_9': 'PO decides WHAT, team decides HOW. If PO specifies implementation, pause and discuss.',
+    'scrum_10': 'Practice saying: "We can do that, but what should we drop?" Default answer is no.',
+
+    // Flow
+    'flow_1': 'Strict WIP limit of 1 per person for 2 weeks. No exceptions.',
+    'flow_2': 'If an item is In Progress for 3+ days, it becomes the team\'s top priority.',
+    'flow_3': 'All PRs reviewed within 4 hours during work hours. Make it visible when violated.',
+    'flow_4': 'Each morning, everyone writes their one focus item on a physical card. No switching.',
+    'flow_5': 'Blocked items move to a "Blocked" column and trigger immediate team discussion.',
+    'flow_6': 'When WIP limit is hit, help others finish before starting new work. No exceptions.',
+    'flow_7': 'Deploy something every day for 2 weeks. Even if it\'s tiny.',
+    'flow_8': 'Track wait times visually. Discuss any wait over 2 hours in the Daily.',
+    'flow_9': 'Update the board before each Daily. If not current, that\'s the first discussion topic.',
+    'flow_10': 'Block 2-hour "no meeting" slots each morning. Enforce ruthlessly.',
+
+    // Ownership
+    'own_1': 'Remove approval gates. Anyone can deploy. Track who deploys and celebrate it.',
+    'own_2': 'Reserve 10% of Sprint for unplanned bug fixing. First person to notice fixes it.',
+    'own_3': 'Next technical decision: team discusses and decides. Architect advises only.',
+    'own_4': 'Create a one-pager: who\'s on-call, how to reach them, what to do first.',
+    'own_5': 'Give everyone read access to production logs. No approval needed.',
+    'own_6': 'Schedule a 30-min incident review after every outage. Blameless format.',
+    'own_7': 'Create a self-service template for new services. Anyone can use it.',
+    'own_8': 'Team reviews and re-prioritizes the backlog together once per Sprint.',
+    'own_9': 'Rotate "refactoring duty" each Sprint. That person owns cleanup of shared code.',
+    'own_10': 'After every incident, ask "What broke?" not "Who broke it?"',
+
+    // Collaboration
+    'collab_1': 'Pair on at least one task per Sprint. Rotate pairs.',
+    'collab_2': 'End each PR review with one specific piece of positive feedback.',
+    'collab_3': 'Create a "stuck? ask here" Slack channel. Celebrate quick responses.',
+    'collab_4': 'Reserve 30 min weekly for cross-sharing: someone teaches something they learned.',
+    'collab_5': 'When you learn something not documented, document it before moving on.',
+    'collab_6': 'Buddy system: new members paired with experienced ones for first 2 weeks.',
+    'collab_7': 'If a disagreement lasts 5+ minutes, escalate to team vote immediately.',
+    'collab_8': 'Use a round-robin format: everyone speaks before anyone speaks twice.',
+    'collab_9': 'Start Daily with a quick board walk. Everyone points to their item.',
+    'collab_10': 'End each Sprint with a 10-min celebration. Name specific wins.',
+
+    // Technical Excellence
+    'tech_1': 'No PR merges without tests for changed code. Enforce in CI.',
+    'tech_2': 'If tests take over 10 min, fixing that becomes top priority next Sprint.',
+    'tech_3': 'Everyone refactors one thing per week. Add it to your PR description.',
+    'tech_4': 'Create a tech debt backlog. Reserve 10% of Sprint capacity for it.',
+    'tech_5': 'Write down 3 coding standards. Enforce them in code review.',
+    'tech_6': 'New team member test: can they run locally in 30 min? If not, fix the setup.',
+    'tech_7': 'Deploy to production daily for 1 week. Even empty commits. Build confidence.',
+    'tech_8': 'Practice a rollback. Time it. Post the result. Make it faster.',
+    'tech_9': 'Every code change to a feature = update to its docs. Same PR.',
+    'tech_10': 'Monthly 1-hour architecture review. Everyone invited. Decisions documented.',
+  }
+
+  return experiments[tension.statement.id] || 'Define a specific 2-week experiment targeting this area.'
+}
+
+/**
+ * Get session share link
+ */
+export async function getSessionShareLink(sessionId: string): Promise<string | null> {
+  const adminUser = await requireAdmin()
+  const supabase = await createClient()
+
+  // Verify ownership
+  if (!(await verifySessionOwnership(sessionId, adminUser))) {
+    return null
+  }
+
+  const { data: session } = await supabase
+    .from('delta_sessions')
+    .select('session_code')
+    .eq('id', sessionId)
+    .single()
+
+  if (!session) return null
+
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+  return `${baseUrl}/d/${session.session_code}`
+}

@@ -1,4 +1,4 @@
--- Pink Pollos Mood App - Supabase Schema
+-- Pink Pollos Delta - Supabase Schema
 -- Run this in your Supabase SQL Editor
 
 -- Enable UUID extension
@@ -521,3 +521,264 @@ VALUES (
 ON CONFLICT (email) DO UPDATE SET
   role = 'super_admin',
   password_hash = '$2b$10$KIfUG2PHs0YrEDyWsHUN1O2OVVfdRxjMCBdpuetuvkAAlGewbikcC';
+
+-- ============================================
+-- DELTA SCHEMA
+-- Time-boxed Agile intervention tool
+-- ============================================
+
+-- Delta session angles (the lens for the intervention)
+DO $$ BEGIN
+  CREATE TYPE delta_angle AS ENUM (
+    'scrum',
+    'flow',
+    'ownership',
+    'collaboration',
+    'technical_excellence'
+  );
+EXCEPTION
+  WHEN duplicate_object THEN NULL;
+END $$;
+
+-- Delta session status
+DO $$ BEGIN
+  CREATE TYPE delta_status AS ENUM (
+    'draft',      -- Created but not started
+    'active',     -- Accepting responses
+    'closed'      -- Completed, synthesized
+  );
+EXCEPTION
+  WHEN duplicate_object THEN NULL;
+END $$;
+
+-- Delta sessions (one per intervention)
+CREATE TABLE IF NOT EXISTS delta_sessions (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  team_id UUID NOT NULL REFERENCES teams(id) ON DELETE CASCADE,
+
+  -- Session identity
+  session_code TEXT UNIQUE NOT NULL,  -- Short code for public link: /d/[code]
+  angle TEXT NOT NULL,                 -- Using TEXT for flexibility, validated in app
+  title TEXT,                          -- Optional custom title
+
+  -- Status tracking
+  status TEXT NOT NULL DEFAULT 'draft' CHECK (status IN ('draft', 'active', 'closed')),
+
+  -- Outcome (set when closed)
+  focus_area TEXT,                     -- The ONE thing to focus on
+  experiment TEXT,                     -- The ONE experiment to run
+  experiment_owner TEXT,               -- Who owns it
+  followup_date DATE,                  -- When to check back
+
+  -- Metadata
+  created_by UUID REFERENCES admin_users(id),
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  closed_at TIMESTAMPTZ
+);
+
+-- Delta responses (anonymous team input)
+CREATE TABLE IF NOT EXISTS delta_responses (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  session_id UUID NOT NULL REFERENCES delta_sessions(id) ON DELETE CASCADE,
+
+  -- Response data
+  answers JSONB NOT NULL,              -- { "statement_id": score, ... }
+  device_id TEXT NOT NULL,             -- Anonymous tracking
+
+  -- Metadata
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+
+  -- One response per device per session
+  UNIQUE(session_id, device_id)
+);
+
+-- Indexes for Delta
+CREATE INDEX IF NOT EXISTS idx_delta_sessions_team_id ON delta_sessions(team_id);
+CREATE INDEX IF NOT EXISTS idx_delta_sessions_code ON delta_sessions(session_code);
+CREATE INDEX IF NOT EXISTS idx_delta_sessions_status ON delta_sessions(status);
+CREATE INDEX IF NOT EXISTS idx_delta_responses_session_id ON delta_responses(session_id);
+
+-- ============================================
+-- DELTA RLS POLICIES
+-- ============================================
+
+ALTER TABLE delta_sessions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE delta_responses ENABLE ROW LEVEL SECURITY;
+
+-- Session policies (admins manage their team's sessions)
+CREATE POLICY "Admins can manage their delta_sessions"
+  ON delta_sessions FOR ALL
+  TO authenticated
+  USING (
+    is_super_admin()
+    OR EXISTS (
+      SELECT 1 FROM teams
+      WHERE teams.id = delta_sessions.team_id
+      AND teams.owner_id = get_admin_user_id()
+    )
+  )
+  WITH CHECK (
+    is_super_admin()
+    OR EXISTS (
+      SELECT 1 FROM teams
+      WHERE teams.id = delta_sessions.team_id
+      AND teams.owner_id = get_admin_user_id()
+    )
+  );
+
+-- Public can read active sessions by code (for participation)
+CREATE POLICY "Public can read active delta_sessions"
+  ON delta_sessions FOR SELECT
+  TO anon
+  USING (status = 'active');
+
+-- Response policies (admins view, public inserts)
+CREATE POLICY "Admins can view their delta_responses"
+  ON delta_responses FOR SELECT
+  TO authenticated
+  USING (
+    EXISTS (
+      SELECT 1 FROM delta_sessions ds
+      JOIN teams t ON t.id = ds.team_id
+      WHERE ds.id = delta_responses.session_id
+      AND (is_super_admin() OR t.owner_id = get_admin_user_id())
+    )
+  );
+
+CREATE POLICY "Public can insert delta_responses"
+  ON delta_responses FOR INSERT
+  TO anon
+  WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM delta_sessions
+      WHERE id = session_id AND status = 'active'
+    )
+  );
+
+CREATE POLICY "Public can read own delta_response"
+  ON delta_responses FOR SELECT
+  TO anon
+  USING (TRUE);
+
+-- ============================================
+-- DELTA RPC FUNCTIONS
+-- ============================================
+
+-- Validate session code and return session info
+CREATE OR REPLACE FUNCTION validate_delta_session(p_session_code TEXT)
+RETURNS TABLE (
+  session_id UUID,
+  team_name TEXT,
+  angle TEXT,
+  title TEXT
+) AS $$
+BEGIN
+  RETURN QUERY
+  SELECT ds.id, t.name, ds.angle, ds.title
+  FROM delta_sessions ds
+  JOIN teams t ON t.id = ds.team_id
+  WHERE ds.session_code = p_session_code
+    AND ds.status = 'active';
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Submit delta response
+CREATE OR REPLACE FUNCTION submit_delta_response(
+  p_session_id UUID,
+  p_device_id TEXT,
+  p_answers JSONB
+)
+RETURNS JSON AS $$
+DECLARE
+  v_response_id UUID;
+  v_session_status TEXT;
+  v_already_responded BOOLEAN;
+BEGIN
+  -- Check session is active
+  SELECT status INTO v_session_status
+  FROM delta_sessions
+  WHERE id = p_session_id;
+
+  IF v_session_status IS NULL THEN
+    RETURN json_build_object('success', FALSE, 'error', 'Session not found');
+  END IF;
+
+  IF v_session_status != 'active' THEN
+    RETURN json_build_object('success', FALSE, 'error', 'Session is not active');
+  END IF;
+
+  -- Check if already responded
+  SELECT EXISTS (
+    SELECT 1 FROM delta_responses
+    WHERE session_id = p_session_id AND device_id = p_device_id
+  ) INTO v_already_responded;
+
+  IF v_already_responded THEN
+    RETURN json_build_object('success', FALSE, 'error', 'Already responded', 'already_responded', TRUE);
+  END IF;
+
+  -- Insert response
+  INSERT INTO delta_responses (session_id, device_id, answers)
+  VALUES (p_session_id, p_device_id, p_answers)
+  RETURNING id INTO v_response_id;
+
+  RETURN json_build_object('success', TRUE, 'response_id', v_response_id);
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Get session response count
+CREATE OR REPLACE FUNCTION get_delta_response_count(p_session_id UUID)
+RETURNS INTEGER AS $$
+BEGIN
+  RETURN (
+    SELECT COUNT(*)::INTEGER
+    FROM delta_responses
+    WHERE session_id = p_session_id
+  );
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Get session responses for synthesis (admin only, called via service role)
+CREATE OR REPLACE FUNCTION get_delta_responses(p_session_id UUID)
+RETURNS TABLE (
+  answers JSONB,
+  created_at TIMESTAMPTZ
+) AS $$
+BEGIN
+  RETURN QUERY
+  SELECT dr.answers, dr.created_at
+  FROM delta_responses dr
+  WHERE dr.session_id = p_session_id
+  ORDER BY dr.created_at;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Generate unique session code
+CREATE OR REPLACE FUNCTION generate_session_code()
+RETURNS TEXT AS $$
+DECLARE
+  v_code TEXT;
+  v_exists BOOLEAN;
+BEGIN
+  LOOP
+    -- Generate 6-char alphanumeric code
+    v_code := UPPER(SUBSTRING(MD5(RANDOM()::TEXT || NOW()::TEXT) FROM 1 FOR 6));
+
+    -- Check if exists
+    SELECT EXISTS (
+      SELECT 1 FROM delta_sessions WHERE session_code = v_code
+    ) INTO v_exists;
+
+    EXIT WHEN NOT v_exists;
+  END LOOP;
+
+  RETURN v_code;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Grant permissions on Delta functions
+GRANT EXECUTE ON FUNCTION validate_delta_session TO anon;
+GRANT EXECUTE ON FUNCTION submit_delta_response TO anon;
+GRANT EXECUTE ON FUNCTION get_delta_response_count TO anon;
+GRANT EXECUTE ON FUNCTION get_delta_responses TO authenticated;
+GRANT EXECUTE ON FUNCTION generate_session_code TO authenticated;

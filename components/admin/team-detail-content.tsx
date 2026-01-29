@@ -2,24 +2,17 @@
 
 import Link from 'next/link'
 import { TeamWithStats } from '@/domain/teams/actions'
-import type { TeamMetrics, PulseInsight } from '@/domain/metrics/types'
 import { AdminHeader } from '@/components/admin/header'
 import { TeamActions } from '@/components/admin/team-actions'
 import { ShareLinkSection } from '@/components/admin/share-link-section'
-import { TeamStats } from '@/components/admin/team-stats'
 import { TeamSettings } from '@/components/admin/team-settings'
-import { PulseMetrics } from '@/components/admin/pulse-metrics'
-import { Fly, FlyFrequency } from '@/components/ui/fly'
 import { useTranslation, useLanguage } from '@/lib/i18n/context'
 
 interface TeamDetailContentProps {
   team: TeamWithStats
-  metrics: TeamMetrics | null
-  insights: PulseInsight[]
-  flyFrequency: FlyFrequency
 }
 
-export function TeamDetailContent({ team, metrics, insights, flyFrequency }: TeamDetailContentProps) {
+export function TeamDetailContent({ team }: TeamDetailContentProps) {
   const t = useTranslation()
   const { language } = useLanguage()
 
@@ -27,9 +20,6 @@ export function TeamDetailContent({ team, metrics, insights, flyFrequency }: Tea
 
   return (
     <div className="relative overflow-hidden">
-      {/* The Fly - responds to team pulse state */}
-      <Fly frequency={flyFrequency} />
-
       <AdminHeader />
 
       <main className="max-w-4xl mx-auto px-4 py-8">
@@ -64,25 +54,26 @@ export function TeamDetailContent({ team, metrics, insights, flyFrequency }: Tea
           </div>
         </div>
 
+        {/* Delta sessions placeholder - will be implemented in Phase 4 */}
+        <div className="mb-8 p-6 border border-dashed border-stone-300 rounded-lg">
+          <div className="text-center text-stone-500">
+            <p className="text-lg font-medium mb-2">Delta Sessions</p>
+            <p className="text-sm">No sessions yet. Create your first Delta session.</p>
+            <button
+              disabled
+              className="mt-4 px-4 py-2 bg-cyan-500 text-white rounded-lg opacity-50 cursor-not-allowed"
+            >
+              + New Delta Session
+            </button>
+          </div>
+        </div>
+
         <div className="grid gap-6 lg:grid-cols-2">
-          {/* Left column: Metrics */}
-          <div className="space-y-6">
-            {metrics && (
-              <PulseMetrics metrics={metrics} insights={insights} />
-            )}
-          </div>
+          {/* Share link */}
+          <ShareLinkSection teamId={team.id} teamSlug={team.slug} />
 
-          {/* Right column: Actions & Stats */}
-          <div className="space-y-6">
-            {/* Share link */}
-            <ShareLinkSection teamId={team.id} teamSlug={team.slug} />
-
-            {/* Basic stats */}
-            <TeamStats team={team} />
-
-            {/* Team settings */}
-            <TeamSettings team={team} />
-          </div>
+          {/* Team settings */}
+          <TeamSettings team={team} />
         </div>
       </main>
     </div>
