@@ -10,7 +10,7 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Modal } from '@/components/ui/modal'
-import { useTranslation } from '@/lib/i18n/context'
+import { useTranslation, TranslationFunction } from '@/lib/i18n/context'
 
 interface SessionDetailContentProps {
   session: DeltaSessionWithStats
@@ -410,7 +410,7 @@ function ScoreGauge({ score }: { score: number }) {
 }
 
 // Statement row with distribution bars
-function StatementRow({ item, rank, t }: { item: StatementScore; rank: number; t: (key: string) => string }) {
+function StatementRow({ item, rank, t }: { item: StatementScore; rank: number; t: TranslationFunction }) {
   const isStrength = rank <= 2
   const isTension = rank >= 9
   const hasDisagreement = item.variance > 1.0

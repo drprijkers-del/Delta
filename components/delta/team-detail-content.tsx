@@ -8,7 +8,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { TeamSettings } from '@/components/admin/team-settings'
 import { TeamActions } from '@/components/admin/team-actions'
-import { useTranslation, useLanguage } from '@/lib/i18n/context'
+import { useTranslation, useLanguage, TranslationFunction } from '@/lib/i18n/context'
 
 interface TeamDetailContentProps {
   team: TeamWithStats
@@ -181,7 +181,7 @@ export function TeamDetailContent({ team, sessions, stats }: TeamDetailContentPr
   )
 }
 
-function SessionCard({ session, t }: { session: DeltaSessionWithStats; t: (key: string) => string }) {
+function SessionCard({ session, t }: { session: DeltaSessionWithStats; t: TranslationFunction }) {
   const angleInfo = getAngleInfo(session.angle)
   const isActive = session.status === 'active'
   const isClosed = session.status === 'closed'
