@@ -33,7 +33,7 @@ export default function NewTeamPage() {
   }
 
   return (
-    <main className="max-w-2xl mx-auto px-4 py-8">
+    <main className="max-w-2xl mx-auto px-4 pt-8 pb-24">
       {/* Back link */}
       <Link
         href="/app/teams"

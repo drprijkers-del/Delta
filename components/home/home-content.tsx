@@ -244,7 +244,7 @@ export function HomeContent() {
       </main>
 
       {/* Footer */}
-      <footer className="p-6 text-center">
+      <footer className="pt-6 pb-24 text-center">
         <p className="text-xs text-stone-400">
           <a
             href="https://pinkpollos.nl"

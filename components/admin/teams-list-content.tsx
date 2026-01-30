@@ -15,7 +15,7 @@ export function TeamsListContent({ teams }: TeamsListContentProps) {
   const t = useTranslation()
 
   return (
-    <main className="max-w-4xl mx-auto px-4 py-8">
+    <main className="max-w-4xl mx-auto px-4 pt-8 pb-24">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
         <div>
