@@ -158,8 +158,8 @@ export function TeamDetailContent({ team, sessions, stats }: TeamDetailContentPr
 
       {/* Team header with settings gear */}
       <div className="mb-8">
-        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
-          <div>
+        <div className="flex flex-row items-start justify-between gap-4">
+          <div className="flex-1 min-w-0">
             <h1 className="text-2xl font-bold text-stone-900">{team.name}</h1>
             {team.description && (
               <p className="text-stone-500 mt-1">{team.description}</p>
@@ -173,11 +173,11 @@ export function TeamDetailContent({ team, sessions, stats }: TeamDetailContentPr
             </p>
           </div>
 
-          {/* Settings gear icon */}
-          <div className="relative">
+          {/* Settings gear icon - always top-right aligned */}
+          <div className="relative flex-shrink-0">
             <button
               onClick={() => setShowSettings(!showSettings)}
-              className="p-2 rounded-lg text-stone-400 hover:text-stone-600 hover:bg-stone-100 transition-colors"
+              className="p-2.5 min-h-11 min-w-11 flex items-center justify-center rounded-lg text-stone-400 hover:text-stone-600 hover:bg-stone-100 active:bg-stone-200 transition-colors"
               aria-label={t('teamActions')}
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
