@@ -84,7 +84,11 @@ export function LoginForm() {
     return (
       <Card>
         <CardContent className="pt-6 text-center">
-          <div className="text-6xl mb-4">📬</div>
+          <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-cyan-100 flex items-center justify-center">
+            <svg className="w-8 h-8 text-cyan-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+            </svg>
+          </div>
           <h2 className="text-xl font-semibold mb-2">{t('loginCheckInbox')}</h2>
           <p className="text-stone-500 mb-6">
             {t('loginEmailSent')}<br />

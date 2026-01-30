@@ -6,6 +6,7 @@ import { getStatements } from '@/domain/delta/statements'
 import { DeltaAngle, getAngleInfo, ResponseAnswers, Statement } from '@/domain/delta/types'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { useTranslation } from '@/lib/i18n/context'
 import { v4 as uuidv4 } from 'uuid'
 
 interface ParticipationContentProps {
@@ -25,6 +26,7 @@ export function ParticipationContent({
   angle,
   title,
 }: ParticipationContentProps) {
+  const t = useTranslation()
   const [viewState, setViewState] = useState<ViewState>('loading')
   const [statements, setStatements] = useState<Statement[]>([])
   const [currentIndex, setCurrentIndex] = useState(0)
@@ -75,6 +77,12 @@ export function ParticipationContent({
     }
   }
 
+  function handleBack() {
+    if (currentIndex > 0) {
+      setCurrentIndex(prev => prev - 1)
+    }
+  }
+
   async function handleSubmit(finalAnswers: ResponseAnswers) {
     setViewState('submitting')
 
@@ -94,7 +102,7 @@ export function ParticipationContent({
   if (viewState === 'loading') {
     return (
       <div className="min-h-screen bg-stone-900 flex items-center justify-center">
-        <div className="text-white">Loading...</div>
+        <div className="text-5xl font-bold text-cyan-500 animate-pulse">Δ</div>
       </div>
     )
   }
@@ -105,10 +113,14 @@ export function ParticipationContent({
       <div className="min-h-screen bg-stone-900 flex items-center justify-center p-4">
         <Card className="max-w-md w-full">
           <CardContent className="py-12 text-center">
-            <div className="text-4xl mb-4">✓</div>
-            <h1 className="text-xl font-bold text-stone-900 mb-2">Already Responded</h1>
+            <div className="w-12 h-12 mx-auto mb-4 rounded-full bg-green-100 flex items-center justify-center">
+              <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+            <h1 className="text-xl font-bold text-stone-900 mb-2">{t('alreadyResponded')}</h1>
             <p className="text-stone-500">
-              You&apos;ve already submitted your response to this session.
+              {t('alreadyRespondedMessage')}
             </p>
           </CardContent>
         </Card>
@@ -122,21 +134,30 @@ export function ParticipationContent({
       <div className="min-h-screen bg-stone-900 flex items-center justify-center p-4">
         <Card className="max-w-md w-full">
           <CardContent className="py-8 text-center">
-            <div className="text-sm text-cyan-600 font-medium mb-2">Delta Session</div>
+            <div className="text-sm text-cyan-600 font-medium mb-2">{t('deltaSession')}</div>
             <h1 className="text-2xl font-bold text-stone-900 mb-1">{teamName}</h1>
             <p className="text-stone-500 mb-8">{title || angleInfo.label}</p>
 
             <div className="text-left bg-stone-50 rounded-xl p-4 mb-8">
-              <div className="text-sm font-medium text-stone-700 mb-2">How it works</div>
+              <div className="text-sm font-medium text-stone-700 mb-2">{t('howItWorks')}</div>
               <ul className="text-sm text-stone-600 space-y-2">
-                <li>• {statements.length} statements. Be honest.</li>
-                <li>• Rate each from 1 (disagree) to 5 (agree).</li>
-                <li>• Your responses are anonymous.</li>
+                <li className="flex items-start gap-2">
+                  <span className="text-cyan-500 mt-0.5">•</span>
+                  <span>{statements.length} {t('statementsHonest')}</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-cyan-500 mt-0.5">•</span>
+                  <span>{t('rateStatement')}</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-cyan-500 mt-0.5">•</span>
+                  <span>{t('responsesAnonymous')}</span>
+                </li>
               </ul>
             </div>
 
             <Button onClick={handleStart} className="w-full">
-              Start
+              {t('start')}
             </Button>
           </CardContent>
         </Card>
@@ -149,6 +170,19 @@ export function ParticipationContent({
     const statement = statements[currentIndex]
     const progress = ((currentIndex) / statements.length) * 100
 
+    // Score button colors - subtle gradient from red to green
+    const getScoreButtonClass = (score: number) => {
+      const baseClass = "flex-1 aspect-square rounded-xl text-white text-xl sm:text-2xl font-bold transition-colors disabled:opacity-50"
+      const colors = [
+        'bg-red-800/50 hover:bg-red-700 active:bg-red-600',
+        'bg-orange-800/50 hover:bg-orange-700 active:bg-orange-600',
+        'bg-amber-800/50 hover:bg-amber-700 active:bg-amber-600',
+        'bg-emerald-800/50 hover:bg-emerald-700 active:bg-emerald-600',
+        'bg-green-800/50 hover:bg-green-700 active:bg-green-600',
+      ]
+      return `${baseClass} ${colors[score - 1]}`
+    }
+
     return (
       <div className="min-h-screen bg-stone-900 flex flex-col">
         {/* Progress bar */}
@@ -160,10 +194,20 @@ export function ParticipationContent({
         </div>
 
         {/* Header */}
-        <div className="p-4 text-center">
+        <div className="p-4 flex items-center justify-between">
+          <button
+            onClick={handleBack}
+            disabled={currentIndex === 0 || viewState === 'submitting'}
+            className="w-10 h-10 rounded-full flex items-center justify-center text-stone-500 hover:text-white hover:bg-stone-800 transition-colors disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-stone-500"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
           <div className="text-stone-500 text-sm">
-            {currentIndex + 1} of {statements.length}
+            {currentIndex + 1} {t('of')} {statements.length}
           </div>
+          <div className="w-10" /> {/* Spacer for alignment */}
         </div>
 
         {/* Statement */}
@@ -179,8 +223,8 @@ export function ParticipationContent({
         <div className="p-6 pb-12">
           <div className="max-w-lg mx-auto">
             <div className="flex justify-between text-stone-500 text-sm mb-3 px-2">
-              <span>Disagree</span>
-              <span>Agree</span>
+              <span>{t('disagree')}</span>
+              <span>{t('agree')}</span>
             </div>
             <div className="flex gap-2 sm:gap-3">
               {[1, 2, 3, 4, 5].map(score => (
@@ -188,7 +232,7 @@ export function ParticipationContent({
                   key={score}
                   onClick={() => handleAnswer(score)}
                   disabled={viewState === 'submitting'}
-                  className="flex-1 aspect-square rounded-xl bg-stone-800 hover:bg-stone-700 active:bg-cyan-600 text-white text-xl sm:text-2xl font-bold transition-colors disabled:opacity-50"
+                  className={getScoreButtonClass(score)}
                 >
                   {score}
                 </button>
@@ -206,10 +250,14 @@ export function ParticipationContent({
       <div className="min-h-screen bg-stone-900 flex items-center justify-center p-4">
         <Card className="max-w-md w-full">
           <CardContent className="py-12 text-center">
-            <div className="text-4xl mb-4">🎯</div>
-            <h1 className="text-xl font-bold text-stone-900 mb-2">Done.</h1>
+            <div className="w-12 h-12 mx-auto mb-4 rounded-full bg-cyan-100 flex items-center justify-center">
+              <svg className="w-6 h-6 text-cyan-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+            <h1 className="text-xl font-bold text-stone-900 mb-2">{t('thankYou')}</h1>
             <p className="text-stone-500">
-              Your responses have been recorded. Thank you.
+              {t('responseRecorded')}
             </p>
           </CardContent>
         </Card>

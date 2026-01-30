@@ -23,8 +23,40 @@ export const translations = {
     homeScrumMasterCTA: 'Ik ben Scrum Master',
     homeScrumMasterSubtext: 'Start in 30 seconden',
     homeAlreadyAccount: 'Al een account?',
-    homeAdminLogin: 'Admin login',
+    homeAdminLogin: 'Inloggen',
     homeLabAccess: 'Toegang',
+
+    // Landing page - Hero
+    heroTitle: 'Scherpe interventies voor Agile teams',
+    heroSubtitle: 'Delta helpt teams in 10 minuten de belangrijkste blokkade identificeren én een experiment starten.',
+    heroBarrier: 'Geen account nodig. Direct beginnen.',
+
+    // Landing page - How it works
+    howDeltaWorks: 'Hoe Delta werkt',
+    step1Title: 'Kies een invalshoek',
+    step1Desc: 'Scrum, Flow, Ownership, Refinement... kies waar je wilt kijken.',
+    step2Title: 'Team beantwoordt stellingen',
+    step2Desc: '10 scherpe stellingen, anoniem. Kost 2 minuten per persoon.',
+    step3Title: 'Delta toont één focus en één experiment',
+    step3Desc: 'Automatische analyse. Geen interpretatie nodig.',
+    step4Title: 'Voer het experiment uit',
+    step4Desc: 'Eén eigenaar, één follow-up moment. Klaar.',
+
+    // Landing page - What you get
+    whatYouGet: 'Wat je krijgt',
+    outcome1: 'Eén focus',
+    outcome2: 'Eén experiment',
+    outcome3: 'Eén eigenaar',
+    outcome4: 'Eén follow-up',
+    outcomeSubtext: 'Niet meer. Niet minder.',
+
+    // Landing page - Who it's for
+    whoItsFor: 'Voor wie?',
+    whoItsForList: 'Scrum Masters · Agile Coaches · Teams die klaar zijn met checklists',
+
+    // Landing page - CTA
+    ctaButton: 'Start een Delta sessie',
+    ctaSubtext: 'Gratis. Geen account nodig om te proberen.',
 
     // Login
     loginWelcome: 'Welkom bij Delta',
@@ -92,7 +124,7 @@ export const translations = {
 
     // Admin
     adminTeams: 'Teams',
-    adminTeamsSubtitle: 'Beheer je Delta sessies',
+    adminTeamsSubtitle: 'Kies een team om een Delta sessie te starten',
     adminNewTeam: 'Nieuw team',
     adminNoTeams: 'Nog geen teams',
     adminNoTeamsMessage: 'Maak je eerste team aan om te beginnen.',
@@ -159,6 +191,99 @@ export const translations = {
     statsParticipants: 'Teamleden',
     statsCheckinsToday: 'Reacties vandaag',
     statsMoodScale: 'Score schaal',
+
+    // Team detail
+    teamScore: 'Team Score',
+    sessions: 'Sessies',
+    responses: 'Reacties',
+    active: 'Actief',
+    newSession: 'Nieuwe sessie',
+    startDeltaSession: 'Nieuwe Delta sessie',
+    startDeltaSessionSubtitle: 'Kies een invalshoek en start binnen 30 seconden.',
+    activeSessions: 'Actieve sessies',
+    completedSessions: 'Afgeronde sessies',
+    noSessionsYet: 'Nog geen sessies',
+    noSessionsMessage: 'Kies een invalshoek en start je eerste Delta sessie.',
+
+    // Create session
+    pickAngle: 'Kies een invalshoek',
+    justOne: 'Eén per sessie. 10 stellingen. 2 minuten per persoon.',
+    startSession: 'Start sessie',
+    statementsCount: 'stellingen',
+
+    // Session detail
+    shareWithTeam: 'Deel met je team',
+    copyLink: 'Kopieer',
+    copied: 'Gekopieerd!',
+    waitingForResponses: 'Reacties verzamelen...',
+    waitingMessage: 'Deel de link hierboven om reacties te verzamelen.',
+    waitingMessagePartial: 'reactie(s) tot nu toe. Minimaal 3 nodig voor inzichten.',
+    overallTeamScore: 'Team Score',
+    responsesCount: 'reacties',
+    areasOfDisagreement: 'punten van onenigheid',
+    teamAligned: 'Team is aligned',
+    allStatements: 'Alle stellingen',
+    sortedByScore: 'Gesorteerd op score (hoog naar laag)',
+    useInRetro: 'Neem dit mee naar je retro',
+    suggestedFocus: 'Focus suggestie',
+    focusArea: 'Focus gebied',
+    suggestedExperiment: 'Voorgesteld experiment',
+    sessionOutcome: 'Sessie resultaat',
+    experiment: 'Experiment',
+    owner: 'Eigenaar',
+    followUp: 'Follow-up',
+    closeSession: 'Sluit sessie',
+    closeSessionInfo: 'Als je de sessie sluit kunnen er geen nieuwe reacties meer worden verzameld.',
+    deleteSession: 'Verwijderen',
+    deleteSessionConfirm: 'Weet je zeker dat je deze sessie wilt verwijderen? Alle reacties gaan verloren. Dit kan niet ongedaan worden gemaakt.',
+    focusAreaPlaceholder: 'Waar gaat het team zich op richten?',
+    experimentPlaceholder: 'Welk experiment gaat het team uitvoeren?',
+    ownerPlaceholder: 'Wie is eigenaar van dit experiment?',
+    strength: 'Sterk punt',
+    tension: 'Aandachtspunt',
+    disagreement: 'Onenigheid',
+    statementsPreview: 'Stellingen preview',
+    statementsPreviewSubtitle: 'Dit zijn de stellingen waar je team op gaat reageren.',
+
+    // Participation
+    deltaSession: 'Delta Sessie',
+    howItWorks: 'Hoe het werkt',
+    statementsHonest: 'stellingen. Wees eerlijk.',
+    rateStatement: 'Beoordeel elke stelling van 1 (oneens) tot 5 (eens).',
+    responsesAnonymous: 'Je antwoorden zijn anoniem.',
+    start: 'Start',
+    disagree: 'Oneens',
+    agree: 'Eens',
+    of: 'van',
+    thankYou: 'Bedankt',
+    responseRecorded: 'Je reactie is opgeslagen. Je stem telt.',
+    alreadyResponded: 'Al gereageerd',
+    alreadyRespondedMessage: 'Je hebt al gereageerd op deze sessie.',
+
+    // Invalid session
+    sessionNotFound: 'Sessie niet gevonden',
+    sessionNotFoundMessage: 'Deze sessie link is ongeldig of de sessie is beëindigd. Vraag je facilitator om een nieuwe link.',
+    goToHome: 'Naar homepage',
+
+    // Angle labels
+    angleScrum: 'Scrum',
+    angleScrumDesc: 'Zijn events nuttig? Helpt het framework?',
+    angleFlow: 'Flow',
+    angleFlowDesc: 'Beweegt het werk? Maken we af wat we starten?',
+    angleOwnership: 'Ownership',
+    angleOwnershipDesc: 'Heeft het team eigenaarschap? Kunnen we handelen zonder te vragen?',
+    angleCollaboration: 'Samenwerking',
+    angleCollaborationDesc: 'Werken we samen? Wordt kennis gedeeld?',
+    angleTechnicalExcellence: 'Technische Excellentie',
+    angleTechnicalExcellenceDesc: 'Wordt de code beter? Bouwen we kwaliteit in?',
+    angleRefinement: 'Refinement',
+    angleRefinementDesc: 'Zijn stories klaar? Is de backlog actionable?',
+    anglePlanning: 'Planning',
+    anglePlanningDesc: 'Is de commitment realistisch? Is het Sprint Goal duidelijk?',
+    angleRetro: 'Retro',
+    angleRetroDesc: 'Verbeteren we? Leiden acties tot verandering?',
+    angleDemo: 'Demo',
+    angleDemoDesc: 'Zijn stakeholders betrokken? Is feedback waardevol?',
   },
 
   en: {
@@ -185,8 +310,40 @@ export const translations = {
     homeScrumMasterCTA: "I'm a Scrum Master",
     homeScrumMasterSubtext: 'Start in 30 seconds',
     homeAlreadyAccount: 'Already have an account?',
-    homeAdminLogin: 'Admin login',
+    homeAdminLogin: 'Sign in',
     homeLabAccess: 'Access',
+
+    // Landing page - Hero
+    heroTitle: 'Sharp interventions for Agile teams',
+    heroSubtitle: 'Delta helps teams identify their key blocker and start an experiment in 10 minutes.',
+    heroBarrier: 'No account needed. Start right away.',
+
+    // Landing page - How it works
+    howDeltaWorks: 'How Delta works',
+    step1Title: 'Pick an angle',
+    step1Desc: 'Scrum, Flow, Ownership, Refinement... choose where to look.',
+    step2Title: 'Team answers statements',
+    step2Desc: '10 sharp statements, anonymous. Takes 2 minutes per person.',
+    step3Title: 'Delta shows one focus and one experiment',
+    step3Desc: 'Automatic analysis. No interpretation needed.',
+    step4Title: 'Run the experiment',
+    step4Desc: 'One owner, one follow-up moment. Done.',
+
+    // Landing page - What you get
+    whatYouGet: 'What you get',
+    outcome1: 'One focus',
+    outcome2: 'One experiment',
+    outcome3: 'One owner',
+    outcome4: 'One follow-up',
+    outcomeSubtext: 'Nothing more. Nothing less.',
+
+    // Landing page - Who it's for
+    whoItsFor: 'Who is it for?',
+    whoItsForList: 'Scrum Masters · Agile Coaches · Teams tired of checklists',
+
+    // Landing page - CTA
+    ctaButton: 'Start a Delta session',
+    ctaSubtext: 'Free. No account needed to try.',
 
     // Login
     loginWelcome: 'Welcome to Delta',
@@ -254,7 +411,7 @@ export const translations = {
 
     // Admin
     adminTeams: 'Teams',
-    adminTeamsSubtitle: 'Manage your Delta sessions',
+    adminTeamsSubtitle: 'Select a team to start a Delta session',
     adminNewTeam: 'New team',
     adminNoTeams: 'No teams yet',
     adminNoTeamsMessage: 'Create your first team to get started.',
@@ -321,6 +478,99 @@ export const translations = {
     statsParticipants: 'Team members',
     statsCheckinsToday: 'Responses today',
     statsMoodScale: 'Score scale',
+
+    // Team detail
+    teamScore: 'Team Score',
+    sessions: 'Sessions',
+    responses: 'Responses',
+    active: 'Active',
+    newSession: 'New session',
+    startDeltaSession: 'New Delta session',
+    startDeltaSessionSubtitle: 'Pick an angle and start within 30 seconds.',
+    activeSessions: 'Active Sessions',
+    completedSessions: 'Completed Sessions',
+    noSessionsYet: 'No sessions yet',
+    noSessionsMessage: 'Pick an angle and start your first Delta session.',
+
+    // Create session
+    pickAngle: 'Pick an angle',
+    justOne: 'One per session. 10 statements. 2 minutes per person.',
+    startSession: 'Start Session',
+    statementsCount: 'statements',
+
+    // Session detail
+    shareWithTeam: 'Share with your team',
+    copyLink: 'Copy Link',
+    copied: 'Copied!',
+    waitingForResponses: 'Collecting responses...',
+    waitingMessage: 'Share the link above to start collecting responses.',
+    waitingMessagePartial: 'response(s) so far. Need at least 3 for insights.',
+    overallTeamScore: 'Team Score',
+    responsesCount: 'responses',
+    areasOfDisagreement: 'areas of disagreement',
+    teamAligned: 'Team aligned',
+    allStatements: 'All Statements',
+    sortedByScore: 'Sorted by score (high to low)',
+    useInRetro: 'Bring this to your retro',
+    suggestedFocus: 'Suggested Focus',
+    focusArea: 'Focus Area',
+    suggestedExperiment: 'Suggested Experiment',
+    sessionOutcome: 'Session Outcome',
+    experiment: 'Experiment',
+    owner: 'Owner',
+    followUp: 'Follow-up',
+    closeSession: 'Close Session',
+    closeSessionInfo: 'Once closed, no more responses can be collected.',
+    deleteSession: 'Delete',
+    deleteSessionConfirm: 'Are you sure you want to delete this session? All responses will be lost. This cannot be undone.',
+    focusAreaPlaceholder: 'What will the team focus on?',
+    experimentPlaceholder: 'What experiment will the team run?',
+    ownerPlaceholder: 'Who owns this experiment?',
+    strength: 'Strength',
+    tension: 'Tension',
+    disagreement: 'Disagreement',
+    statementsPreview: 'Statements Preview',
+    statementsPreviewSubtitle: 'These are the statements your team will respond to.',
+
+    // Participation
+    deltaSession: 'Delta Session',
+    howItWorks: 'How it works',
+    statementsHonest: 'statements. Be honest.',
+    rateStatement: 'Rate each from 1 (disagree) to 5 (agree).',
+    responsesAnonymous: 'Your responses are anonymous.',
+    start: 'Start',
+    disagree: 'Disagree',
+    agree: 'Agree',
+    of: 'of',
+    thankYou: 'Thank you',
+    responseRecorded: 'Your response is recorded. Your voice matters.',
+    alreadyResponded: 'Already Responded',
+    alreadyRespondedMessage: 'You\'ve already submitted your response to this session.',
+
+    // Invalid session
+    sessionNotFound: 'Session Not Found',
+    sessionNotFoundMessage: 'This session link is invalid or the session has ended. Ask your facilitator for a new link.',
+    goToHome: 'Go to homepage',
+
+    // Angle labels
+    angleScrum: 'Scrum',
+    angleScrumDesc: 'Are events useful? Is the framework helping?',
+    angleFlow: 'Flow',
+    angleFlowDesc: 'Is work moving? Are we finishing what we start?',
+    angleOwnership: 'Ownership',
+    angleOwnershipDesc: 'Does the team own it? Can we act without asking?',
+    angleCollaboration: 'Collaboration',
+    angleCollaborationDesc: 'Are we working together? Is knowledge shared?',
+    angleTechnicalExcellence: 'Technical Excellence',
+    angleTechnicalExcellenceDesc: 'Is the code getting better? Are we building quality in?',
+    angleRefinement: 'Refinement',
+    angleRefinementDesc: 'Are stories ready? Is the backlog actionable?',
+    anglePlanning: 'Planning',
+    anglePlanningDesc: 'Is commitment realistic? Is the Sprint Goal clear?',
+    angleRetro: 'Retro',
+    angleRetroDesc: 'Are we improving? Do actions lead to change?',
+    angleDemo: 'Demo',
+    angleDemoDesc: 'Are stakeholders engaged? Is feedback valuable?',
   },
 } as const
 

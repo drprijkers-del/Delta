@@ -26,8 +26,8 @@ export function LoginPageContent() {
           {/* Logo / Title */}
           <div className="text-center mb-8">
             <div className="text-5xl font-bold text-cyan-500 mb-4">Δ</div>
-            <h1 className="text-2xl font-bold text-stone-900 mb-1">Delta</h1>
-            <p className="text-sm text-stone-400">{t('loginAdminAccess')}</p>
+            <h1 className="text-2xl font-bold text-stone-900 mb-1">{t('loginWelcome')}</h1>
+            <p className="text-sm text-stone-500">{t('loginSubtitle')}</p>
           </div>
 
           <Suspense fallback={

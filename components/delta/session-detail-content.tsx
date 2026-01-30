@@ -10,6 +10,7 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Modal } from '@/components/ui/modal'
+import { useTranslation } from '@/lib/i18n/context'
 
 interface SessionDetailContentProps {
   session: DeltaSessionWithStats
@@ -19,6 +20,7 @@ interface SessionDetailContentProps {
 
 export function SessionDetailContent({ session, synthesis, shareLink }: SessionDetailContentProps) {
   const router = useRouter()
+  const t = useTranslation()
   const angleInfo = getAngleInfo(session.angle)
   const isActive = session.status === 'active'
   const isClosed = session.status === 'closed'
@@ -114,11 +116,11 @@ export function SessionDetailContent({ session, synthesis, shareLink }: SessionD
           <CardContent className="py-4">
             <div className="flex flex-col sm:flex-row sm:items-center gap-4">
               <div className="flex-1 min-w-0">
-                <div className="text-sm font-medium text-stone-700 mb-1">Share with your team</div>
+                <div className="text-sm font-medium text-stone-700 mb-1">{t('shareWithTeam')}</div>
                 <code className="text-sm text-cyan-700 break-all">{shareLink}</code>
               </div>
-              <Button onClick={handleCopy} variant="secondary" className="flex-shrink-0">
-                {copied ? 'Copied!' : 'Copy Link'}
+              <Button onClick={handleCopy} variant="secondary" className="shrink-0">
+                {copied ? t('copied') : t('copyLink')}
               </Button>
             </div>
           </CardContent>
@@ -129,12 +131,11 @@ export function SessionDetailContent({ session, synthesis, shareLink }: SessionD
       {isActive && session.response_count < 3 && (
         <Card className="mb-8">
           <CardContent className="py-8 text-center">
-            <div className="text-4xl mb-4">⏳</div>
-            <h3 className="text-lg font-medium text-stone-900 mb-2">Waiting for responses</h3>
+            <h3 className="text-lg font-medium text-stone-900 mb-2">{t('waitingForResponses')}</h3>
             <p className="text-stone-500">
               {session.response_count === 0
-                ? 'Share the link above to start collecting responses.'
-                : `${session.response_count} response${session.response_count !== 1 ? 's' : ''} so far. Need at least 3 for synthesis.`
+                ? t('waitingMessage')
+                : `${session.response_count} ${t('waitingMessagePartial')}`
               }
             </p>
           </CardContent>
@@ -145,8 +146,8 @@ export function SessionDetailContent({ session, synthesis, shareLink }: SessionD
       {isActive && session.response_count < 3 && (
         <Card className="mb-8">
           <CardHeader>
-            <h2 className="text-lg font-semibold text-stone-900">Statements Preview</h2>
-            <p className="text-sm text-stone-500">These are the {getStatements(session.angle as DeltaAngle).length} statements your team will respond to.</p>
+            <h2 className="text-lg font-semibold text-stone-900">{t('statementsPreview')}</h2>
+            <p className="text-sm text-stone-500">{t('statementsPreviewSubtitle')}</p>
           </CardHeader>
           <CardContent className="space-y-3">
             {getStatements(session.angle as DeltaAngle).map((statement, i) => (
@@ -169,16 +170,16 @@ export function SessionDetailContent({ session, synthesis, shareLink }: SessionD
       {synthesis && session.response_count >= 3 && (
         <div className="space-y-6 mb-8">
           {/* Overall Score Card */}
-          <Card className="border-cyan-200 bg-gradient-to-r from-cyan-50 to-white">
+          <Card className="border-cyan-200 bg-linear-to-r from-cyan-50 to-white">
             <CardContent className="py-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <div className="text-sm font-medium text-stone-500">Overall Health Score</div>
+                  <div className="text-sm font-medium text-stone-500">{t('overallTeamScore')}</div>
                   <div className="text-4xl font-bold text-cyan-700">{synthesis.overall_score.toFixed(1)}</div>
                   <div className="text-sm text-stone-500 mt-1">
-                    {synthesis.response_count} responses • {synthesis.disagreement_count > 0
-                      ? `${synthesis.disagreement_count} areas of disagreement`
-                      : 'Team aligned'}
+                    {synthesis.response_count} {t('responsesCount')} • {synthesis.disagreement_count > 0
+                      ? `${synthesis.disagreement_count} ${t('areasOfDisagreement')}`
+                      : t('teamAligned')}
                   </div>
                 </div>
                 <div className="text-right">
@@ -191,12 +192,12 @@ export function SessionDetailContent({ session, synthesis, shareLink }: SessionD
           {/* All Statements Breakdown */}
           <Card>
             <CardHeader>
-              <h2 className="text-lg font-semibold text-stone-900">All Statements</h2>
-              <p className="text-sm text-stone-500">Sorted by score (high to low). Retro input.</p>
+              <h2 className="text-lg font-semibold text-stone-900">{t('allStatements')}</h2>
+              <p className="text-sm text-stone-500">{t('sortedByScore')}. {t('useInRetro')}</p>
             </CardHeader>
             <CardContent className="space-y-4">
               {synthesis.all_scores.map((item, i) => (
-                <StatementRow key={item.statement.id} item={item} rank={i + 1} />
+                <StatementRow key={item.statement.id} item={item} rank={i + 1} t={t} />
               ))}
             </CardContent>
           </Card>
@@ -205,15 +206,15 @@ export function SessionDetailContent({ session, synthesis, shareLink }: SessionD
           {isActive && (
             <Card className="border-cyan-200">
               <CardHeader>
-                <h2 className="text-lg font-semibold text-stone-900">Suggested Focus</h2>
+                <h2 className="text-lg font-semibold text-stone-900">{t('suggestedFocus')}</h2>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <div className="text-sm font-medium text-stone-500 mb-1">Focus Area</div>
+                  <div className="text-sm font-medium text-stone-500 mb-1">{t('focusArea')}</div>
                   <p className="text-stone-900 font-medium">{synthesis.focus_area}</p>
                 </div>
                 <div>
-                  <div className="text-sm font-medium text-stone-500 mb-1">Suggested Experiment</div>
+                  <div className="text-sm font-medium text-stone-500 mb-1">{t('suggestedExperiment')}</div>
                   <p className="text-stone-700">{synthesis.suggested_experiment}</p>
                 </div>
               </CardContent>
@@ -226,24 +227,24 @@ export function SessionDetailContent({ session, synthesis, shareLink }: SessionD
       {isClosed && session.focus_area && (
         <Card className="mb-8 border-stone-300">
           <CardHeader>
-            <h2 className="text-lg font-semibold text-stone-900">Session Outcome</h2>
+            <h2 className="text-lg font-semibold text-stone-900">{t('sessionOutcome')}</h2>
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <div className="text-sm font-medium text-stone-500 mb-1">Focus Area</div>
+              <div className="text-sm font-medium text-stone-500 mb-1">{t('focusArea')}</div>
               <p className="text-stone-900 font-medium">{session.focus_area}</p>
             </div>
             <div>
-              <div className="text-sm font-medium text-stone-500 mb-1">Experiment</div>
+              <div className="text-sm font-medium text-stone-500 mb-1">{t('experiment')}</div>
               <p className="text-stone-700">{session.experiment}</p>
             </div>
             <div className="flex gap-8">
               <div>
-                <div className="text-sm font-medium text-stone-500 mb-1">Owner</div>
+                <div className="text-sm font-medium text-stone-500 mb-1">{t('owner')}</div>
                 <p className="text-stone-900">{session.experiment_owner}</p>
               </div>
               <div>
-                <div className="text-sm font-medium text-stone-500 mb-1">Follow-up</div>
+                <div className="text-sm font-medium text-stone-500 mb-1">{t('followUp')}</div>
                 <p className="text-stone-900">{session.followup_date}</p>
               </div>
             </div>
@@ -259,14 +260,14 @@ export function SessionDetailContent({ session, synthesis, shareLink }: SessionD
             disabled={session.response_count < 3}
             className="flex-1"
           >
-            Close Session
+            {t('closeSession')}
           </Button>
           <Button
             onClick={() => setShowDeleteModal(true)}
             variant="secondary"
             className="text-red-600 hover:text-red-700"
           >
-            Delete
+            {t('deleteSession')}
           </Button>
         </div>
       )}
@@ -275,48 +276,49 @@ export function SessionDetailContent({ session, synthesis, shareLink }: SessionD
       <Modal
         isOpen={showCloseModal}
         onClose={() => setShowCloseModal(false)}
-        title="Close Session"
+        title={t('closeSession')}
       >
         <div className="space-y-4">
+          <p className="text-sm text-stone-500 -mt-2 mb-4">{t('closeSessionInfo')}</p>
           <div>
             <label className="block text-sm font-medium text-stone-700 mb-1">
-              Focus Area
+              {t('focusArea')}
             </label>
             <input
               type="text"
               value={focusArea}
               onChange={e => setFocusArea(e.target.value)}
               className="w-full px-4 py-2 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500"
-              placeholder="The ONE thing to focus on"
+              placeholder={t('focusAreaPlaceholder')}
             />
           </div>
           <div>
             <label className="block text-sm font-medium text-stone-700 mb-1">
-              Experiment
+              {t('experiment')}
             </label>
             <textarea
               value={experiment}
               onChange={e => setExperiment(e.target.value)}
               rows={3}
               className="w-full px-4 py-2 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500"
-              placeholder="The ONE experiment to run"
+              placeholder={t('experimentPlaceholder')}
             />
           </div>
           <div>
             <label className="block text-sm font-medium text-stone-700 mb-1">
-              Owner
+              {t('owner')}
             </label>
             <input
               type="text"
               value={owner}
               onChange={e => setOwner(e.target.value)}
               className="w-full px-4 py-2 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500"
-              placeholder="Who owns this experiment?"
+              placeholder={t('ownerPlaceholder')}
             />
           </div>
           <div>
             <label className="block text-sm font-medium text-stone-700 mb-1">
-              Follow-up Date
+              {t('followUp')}
             </label>
             <input
               type="date"
@@ -331,7 +333,7 @@ export function SessionDetailContent({ session, synthesis, shareLink }: SessionD
               variant="secondary"
               className="flex-1"
             >
-              Cancel
+              {t('cancel')}
             </Button>
             <Button
               onClick={handleClose}
@@ -339,7 +341,7 @@ export function SessionDetailContent({ session, synthesis, shareLink }: SessionD
               disabled={!focusArea || !experiment || !owner}
               className="flex-1"
             >
-              Close Session
+              {t('closeSession')}
             </Button>
           </div>
         </div>
@@ -349,10 +351,10 @@ export function SessionDetailContent({ session, synthesis, shareLink }: SessionD
       <Modal
         isOpen={showDeleteModal}
         onClose={() => setShowDeleteModal(false)}
-        title="Delete Session"
+        title={t('deleteSession')}
       >
         <p className="text-stone-600 mb-6">
-          Are you sure you want to delete this session? All responses will be lost. This cannot be undone.
+          {t('deleteSessionConfirm')}
         </p>
         <div className="flex gap-3">
           <Button
@@ -360,14 +362,14 @@ export function SessionDetailContent({ session, synthesis, shareLink }: SessionD
             variant="secondary"
             className="flex-1"
           >
-            Cancel
+            {t('cancel')}
           </Button>
           <Button
             onClick={handleDelete}
             loading={deleting}
             className="flex-1 bg-red-600 hover:bg-red-700"
           >
-            Delete
+            {t('deleteSession')}
           </Button>
         </div>
       </Modal>
@@ -408,7 +410,7 @@ function ScoreGauge({ score }: { score: number }) {
 }
 
 // Statement row with distribution bars
-function StatementRow({ item, rank }: { item: StatementScore; rank: number }) {
+function StatementRow({ item, rank, t }: { item: StatementScore; rank: number; t: (key: string) => string }) {
   const isStrength = rank <= 2
   const isTension = rank >= 9
   const hasDisagreement = item.variance > 1.0
@@ -431,9 +433,9 @@ function StatementRow({ item, rank }: { item: StatementScore; rank: number }) {
         <div className="flex-1 min-w-0">
           <p className="text-stone-800 text-sm leading-relaxed">{item.statement.text}</p>
           <div className="flex items-center gap-2 mt-1">
-            {isStrength && <span className="text-xs bg-green-200 text-green-800 px-2 py-0.5 rounded">Strength</span>}
-            {isTension && <span className="text-xs bg-amber-200 text-amber-800 px-2 py-0.5 rounded">Tension</span>}
-            {hasDisagreement && <span className="text-xs bg-purple-200 text-purple-800 px-2 py-0.5 rounded">Disagreement</span>}
+            {isStrength && <span className="text-xs bg-green-200 text-green-800 px-2 py-0.5 rounded">{t('strength')}</span>}
+            {isTension && <span className="text-xs bg-amber-200 text-amber-800 px-2 py-0.5 rounded">{t('tension')}</span>}
+            {hasDisagreement && <span className="text-xs bg-purple-200 text-purple-800 px-2 py-0.5 rounded">{t('disagreement')}</span>}
           </div>
         </div>
       </div>

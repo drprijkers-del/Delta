@@ -7,10 +7,12 @@ import { createSession } from '@/domain/delta/actions'
 import { ANGLES, DeltaAngle } from '@/domain/delta/types'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
+import { useTranslation } from '@/lib/i18n/context'
 
 export default function NewDeltaSessionPage() {
   const router = useRouter()
   const params = useParams()
+  const t = useTranslation()
   const teamId = params.id as string
 
   const [selectedAngle, setSelectedAngle] = useState<DeltaAngle | null>(null)
@@ -34,23 +36,54 @@ export default function NewDeltaSessionPage() {
     router.push(`/app/delta/${result.sessionId}`)
   }
 
+  // Map angle IDs to translation keys
+  const getAngleLabel = (angleId: string) => {
+    const labelMap: Record<string, string> = {
+      scrum: t('angleScrum'),
+      flow: t('angleFlow'),
+      ownership: t('angleOwnership'),
+      collaboration: t('angleCollaboration'),
+      technical_excellence: t('angleTechnicalExcellence'),
+      refinement: t('angleRefinement'),
+      planning: t('anglePlanning'),
+      retro: t('angleRetro'),
+      demo: t('angleDemo'),
+    }
+    return labelMap[angleId] || angleId
+  }
+
+  const getAngleDesc = (angleId: string) => {
+    const descMap: Record<string, string> = {
+      scrum: t('angleScrumDesc'),
+      flow: t('angleFlowDesc'),
+      ownership: t('angleOwnershipDesc'),
+      collaboration: t('angleCollaborationDesc'),
+      technical_excellence: t('angleTechnicalExcellenceDesc'),
+      refinement: t('angleRefinementDesc'),
+      planning: t('anglePlanningDesc'),
+      retro: t('angleRetroDesc'),
+      demo: t('angleDemoDesc'),
+    }
+    return descMap[angleId] || ''
+  }
+
   return (
     <main className="max-w-2xl mx-auto px-4 py-8">
       {/* Back link */}
       <Link
         href={`/app/teams/${teamId}`}
-        className="inline-flex items-center text-stone-500 hover:text-stone-700 mb-6"
+        className="inline-flex items-center text-stone-500 hover:text-stone-700 mb-6 min-h-11 py-2"
       >
         <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
         </svg>
-        Back
+        {t('adminBack')}
       </Link>
 
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-stone-900">Pick an angle.</h1>
-        <p className="text-stone-600 mt-1">Just one.</p>
+        <h1 className="text-2xl font-bold text-stone-900">{t('pickAngle')}</h1>
+        <p className="text-stone-600 mt-1">{t('justOne')}</p>
       </div>
 
       {error && (
@@ -77,11 +110,11 @@ export default function NewDeltaSessionPage() {
                   ? 'bg-cyan-500'
                   : 'bg-stone-300'
               }`}>
-                {angle.label.charAt(0)}
+                {getAngleLabel(angle.id).charAt(0)}
               </div>
               <div>
-                <div className="font-semibold text-stone-900">{angle.label}</div>
-                <div className="text-sm text-stone-500">{angle.description}</div>
+                <div className="font-semibold text-stone-900">{getAngleLabel(angle.id)}</div>
+                <div className="text-sm text-stone-500">{getAngleDesc(angle.id)}</div>
               </div>
             </div>
           </button>
@@ -92,7 +125,7 @@ export default function NewDeltaSessionPage() {
       <div className="flex gap-3">
         <Link href={`/app/teams/${teamId}`} className="flex-1">
           <Button type="button" variant="secondary" className="w-full">
-            Cancel
+            {t('cancel')}
           </Button>
         </Link>
         <Button
@@ -101,7 +134,7 @@ export default function NewDeltaSessionPage() {
           loading={loading}
           className="flex-1"
         >
-          Start Session
+          {t('startSession')}
         </Button>
       </div>
     </main>

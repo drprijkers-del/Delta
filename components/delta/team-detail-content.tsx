@@ -83,7 +83,7 @@ export function TeamDetailContent({ team, sessions, stats }: TeamDetailContentPr
               <div className={`text-3xl font-bold ${getScoreColor(stats.averageScore)}`}>
                 {stats.averageScore !== null ? stats.averageScore.toFixed(1) : '—'}
               </div>
-              <div className="text-xs text-stone-500 mt-1">Health Score</div>
+              <div className="text-xs text-stone-500 mt-1">{t('teamScore')}</div>
             </CardContent>
           </Card>
 
@@ -93,7 +93,7 @@ export function TeamDetailContent({ team, sessions, stats }: TeamDetailContentPr
               <div className="text-3xl font-bold text-stone-700">
                 {stats.totalSessions}
               </div>
-              <div className="text-xs text-stone-500 mt-1">Sessions</div>
+              <div className="text-xs text-stone-500 mt-1">{t('sessions')}</div>
             </CardContent>
           </Card>
 
@@ -103,7 +103,7 @@ export function TeamDetailContent({ team, sessions, stats }: TeamDetailContentPr
               <div className="text-3xl font-bold text-stone-700">
                 {stats.totalResponses}
               </div>
-              <div className="text-xs text-stone-500 mt-1">Responses</div>
+              <div className="text-xs text-stone-500 mt-1">{t('responses')}</div>
             </CardContent>
           </Card>
 
@@ -113,7 +113,7 @@ export function TeamDetailContent({ team, sessions, stats }: TeamDetailContentPr
               <div className={`text-3xl font-bold ${stats.activeSessions > 0 ? 'text-cyan-600' : 'text-stone-400'}`}>
                 {stats.activeSessions}
               </div>
-              <div className="text-xs text-stone-500 mt-1">Active</div>
+              <div className="text-xs text-stone-500 mt-1">{t('active')}</div>
             </CardContent>
           </Card>
         </div>
@@ -124,15 +124,15 @@ export function TeamDetailContent({ team, sessions, stats }: TeamDetailContentPr
         <CardContent className="py-6">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
-              <h2 className="text-lg font-semibold text-stone-900">Start a Delta Session</h2>
-              <p className="text-sm text-stone-600">One session. One focus. One experiment.</p>
+              <h2 className="text-lg font-semibold text-stone-900">{t('startDeltaSession')}</h2>
+              <p className="text-sm text-stone-600">{t('startDeltaSessionSubtitle')}</p>
             </div>
             <Link href={`/app/teams/${team.id}/delta/new`}>
               <Button>
                 <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                 </svg>
-                New Session
+                {t('newSession')}
               </Button>
             </Link>
           </div>
@@ -142,10 +142,10 @@ export function TeamDetailContent({ team, sessions, stats }: TeamDetailContentPr
       {/* Active Sessions */}
       {activeSessions.length > 0 && (
         <div className="mb-8">
-          <h2 className="text-lg font-semibold text-stone-900 mb-4">Active Sessions</h2>
+          <h2 className="text-lg font-semibold text-stone-900 mb-4">{t('activeSessions')}</h2>
           <div className="grid gap-4">
             {activeSessions.map(session => (
-              <SessionCard key={session.id} session={session} />
+              <SessionCard key={session.id} session={session} t={t} />
             ))}
           </div>
         </div>
@@ -154,10 +154,10 @@ export function TeamDetailContent({ team, sessions, stats }: TeamDetailContentPr
       {/* Closed Sessions */}
       {closedSessions.length > 0 && (
         <div className="mb-8">
-          <h2 className="text-lg font-semibold text-stone-500 mb-4">Completed Sessions</h2>
+          <h2 className="text-lg font-semibold text-stone-500 mb-4">{t('completedSessions')}</h2>
           <div className="grid gap-4">
             {closedSessions.map(session => (
-              <SessionCard key={session.id} session={session} />
+              <SessionCard key={session.id} session={session} t={t} />
             ))}
           </div>
         </div>
@@ -167,9 +167,8 @@ export function TeamDetailContent({ team, sessions, stats }: TeamDetailContentPr
       {sessions.length === 0 && (
         <Card className="mb-8">
           <CardContent className="py-12 text-center">
-            <div className="text-4xl mb-4">🎯</div>
-            <h3 className="text-lg font-medium text-stone-900 mb-2">No sessions yet</h3>
-            <p className="text-stone-500 mb-6">Start your first Delta session to gather team insights.</p>
+            <h3 className="text-lg font-medium text-stone-900 mb-2">{t('noSessionsYet')}</h3>
+            <p className="text-stone-500 mb-6">{t('noSessionsMessage')}</p>
           </CardContent>
         </Card>
       )}
@@ -182,7 +181,7 @@ export function TeamDetailContent({ team, sessions, stats }: TeamDetailContentPr
   )
 }
 
-function SessionCard({ session }: { session: DeltaSessionWithStats }) {
+function SessionCard({ session, t }: { session: DeltaSessionWithStats; t: (key: string) => string }) {
   const angleInfo = getAngleInfo(session.angle)
   const isActive = session.status === 'active'
   const isClosed = session.status === 'closed'
@@ -214,7 +213,7 @@ function SessionCard({ session }: { session: DeltaSessionWithStats }) {
                 )}
               </div>
               {hasScore && (
-                <span className="text-[10px] text-stone-400 mt-1">health</span>
+                <span className="text-[10px] text-stone-400 mt-1">{t('teamScore').toLowerCase()}</span>
               )}
             </div>
 
@@ -226,21 +225,21 @@ function SessionCard({ session }: { session: DeltaSessionWithStats }) {
                 </h3>
                 {isActive && (
                   <span className="text-xs bg-cyan-100 text-cyan-700 px-2 py-0.5 rounded-full">
-                    Active
+                    {t('active')}
                   </span>
                 )}
                 {isClosed && (
                   <span className="text-xs bg-stone-100 text-stone-600 px-2 py-0.5 rounded-full">
-                    Closed
+                    {t('completedSessions').split(' ')[0]}
                   </span>
                 )}
               </div>
               <p className="text-sm text-stone-500">
-                {angleInfo.label} • {session.response_count} response{session.response_count !== 1 ? 's' : ''}
+                {angleInfo.label} • {session.response_count} {t('responses').toLowerCase()}
               </p>
               {isClosed && session.focus_area && (
                 <p className="text-sm text-stone-400 mt-1 truncate">
-                  Focus: {session.focus_area}
+                  {t('focusArea')}: {session.focus_area}
                 </p>
               )}
             </div>
