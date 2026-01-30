@@ -100,10 +100,30 @@ export function BacklogContent() {
       </Link>
 
       {/* Header */}
-      <div className="mb-8">
+      <div className="mb-6">
         <h1 className="text-2xl font-bold text-stone-900 mb-2">{t('backlogTitle')}</h1>
         <p className="text-stone-600">{t('backlogIntro')}</p>
         <p className="text-sm text-stone-400 mt-2">{t('backlogNotRoadmap')}</p>
+      </div>
+
+      {/* Guardrails - what users cannot do */}
+      <div className="mb-8 p-4 bg-stone-100 rounded-xl">
+        <h2 className="text-sm font-medium text-stone-700 mb-2">{t('backlogGuardrailsTitle')}</h2>
+        <p className="text-sm text-stone-500 mb-3">{t('backlogGuardrailsText')}</p>
+        <div className="flex flex-wrap gap-2">
+          <span className="text-xs bg-stone-200 text-stone-600 px-2 py-1 rounded">
+            {t('backlogNoVoting')}
+          </span>
+          <span className="text-xs bg-stone-200 text-stone-600 px-2 py-1 rounded">
+            {t('backlogNoComments')}
+          </span>
+          <span className="text-xs bg-stone-200 text-stone-600 px-2 py-1 rounded">
+            {t('backlogNoRequests')}
+          </span>
+          <span className="text-xs bg-cyan-100 text-cyan-700 px-2 py-1 rounded">
+            {t('backlogCuratedBy')}
+          </span>
+        </div>
       </div>
 
       {/* Filters */}

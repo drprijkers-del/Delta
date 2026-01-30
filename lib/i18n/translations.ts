@@ -325,6 +325,27 @@ export const translations = {
     backlogViewAll: 'Alles',
     backlogEmpty: 'Geen items in deze categorie.',
     backlogLink: 'Backlog',
+
+    // Backlog guardrails
+    backlogGuardrailsTitle: 'Over deze backlog',
+    backlogGuardrailsText: 'Je kunt hier geen stemmen, reageren of verzoeken indienen. Feedback wordt verzameld via het feedbackformulier en door het Delta-team gecureerd tot deze backlog.',
+    backlogNoVoting: 'Geen stemmen',
+    backlogNoComments: 'Geen reacties',
+    backlogNoRequests: 'Geen direct verzoeken',
+    backlogCuratedBy: 'Beheerd door het Delta-team',
+
+    // Feedback form
+    feedbackButton: 'Feedback',
+    feedbackTitle: 'Stuur feedback',
+    feedbackIntro: 'Je feedback helpt Delta verbeteren. We lezen alles, maar reageren niet individueel.',
+    feedbackPlaceholder: 'Wat mis je, wat kan beter, wat werkt goed?',
+    feedbackSubmit: 'Versturen',
+    feedbackSubmitting: 'Versturen...',
+    feedbackThanks: 'Bedankt voor je feedback',
+    feedbackConfirmation: 'We hebben je bericht ontvangen. Bekijk onze backlog om te zien hoe feedback wordt beoordeeld.',
+    feedbackViewBacklog: 'Bekijk backlog',
+    feedbackClose: 'Sluiten',
+    feedbackRequired: 'Schrijf je feedback voordat je verstuurt',
   },
 
   en: {
@@ -653,6 +674,27 @@ export const translations = {
     backlogViewAll: 'All',
     backlogEmpty: 'No items in this category.',
     backlogLink: 'Backlog',
+
+    // Backlog guardrails
+    backlogGuardrailsTitle: 'About this backlog',
+    backlogGuardrailsText: 'You cannot vote, comment, or submit requests here. Feedback is collected via the feedback form and curated by the Delta team into this backlog.',
+    backlogNoVoting: 'No voting',
+    backlogNoComments: 'No comments',
+    backlogNoRequests: 'No direct requests',
+    backlogCuratedBy: 'Curated by the Delta team',
+
+    // Feedback form
+    feedbackButton: 'Feedback',
+    feedbackTitle: 'Send feedback',
+    feedbackIntro: 'Your feedback helps improve Delta. We read everything, but don\'t respond individually.',
+    feedbackPlaceholder: 'What\'s missing, what could be better, what works well?',
+    feedbackSubmit: 'Send',
+    feedbackSubmitting: 'Sending...',
+    feedbackThanks: 'Thanks for your feedback',
+    feedbackConfirmation: 'We received your message. Check our backlog to see how feedback is evaluated.',
+    feedbackViewBacklog: 'View backlog',
+    feedbackClose: 'Close',
+    feedbackRequired: 'Write your feedback before sending',
   },
 } as const
 
