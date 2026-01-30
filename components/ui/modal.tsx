@@ -38,7 +38,8 @@ export function Modal({ isOpen, onClose, title, children, footer }: ModalProps) 
             <h2 className="text-lg font-semibold text-stone-900">{title}</h2>
             <button
               onClick={onClose}
-              className="text-stone-400 hover:text-stone-600 transition-colors"
+              className="-mr-2 p-2 min-h-11 min-w-11 flex items-center justify-center text-stone-400 hover:text-stone-600 hover:bg-stone-100 rounded-lg transition-colors"
+              aria-label="Sluiten"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />

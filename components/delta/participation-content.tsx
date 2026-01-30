@@ -198,7 +198,8 @@ export function ParticipationContent({
           <button
             onClick={handleBack}
             disabled={currentIndex === 0 || viewState === 'submitting'}
-            className="w-10 h-10 rounded-full flex items-center justify-center text-stone-500 hover:text-white hover:bg-stone-800 transition-colors disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-stone-500"
+            className="w-11 h-11 min-w-11 min-h-11 rounded-full flex items-center justify-center text-stone-500 hover:text-white hover:bg-stone-800 active:bg-stone-700 transition-colors disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-stone-500"
+            aria-label="Vorige"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -207,7 +208,7 @@ export function ParticipationContent({
           <div className="text-stone-500 text-sm">
             {currentIndex + 1} {t('of')} {statements.length}
           </div>
-          <div className="w-10" /> {/* Spacer for alignment */}
+          <div className="w-11" /> {/* Spacer for alignment */}
         </div>
 
         {/* Statement */}

@@ -161,12 +161,12 @@ export function BacklogContent({ backlogItems, releaseNotes }: BacklogContentPro
       {/* Back link */}
       <Link
         href="/"
-        className="inline-flex items-center text-stone-500 hover:text-stone-700 mb-6 min-h-11 py-2"
+        className="-ml-3 inline-flex items-center gap-1 px-3 py-2 min-h-11 text-stone-500 hover:text-stone-700 hover:bg-stone-100 active:bg-stone-200 rounded-lg transition-colors mb-6"
       >
-        <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
         </svg>
-        Delta
+        <span className="font-medium">Delta</span>
       </Link>
 
       {/* Header */}
@@ -346,18 +346,18 @@ export function BacklogContent({ backlogItems, releaseNotes }: BacklogContentPro
         </Card>
       )}
 
-      {/* Filters */}
+      {/* Filters - Mobile optimized with proper tap targets */}
       <div className="flex flex-wrap gap-2 mb-6">
         {/* Status filter */}
-        <div className="flex gap-1 p-1 bg-stone-100 rounded-lg">
+        <div className="flex gap-1 p-1 bg-stone-100 rounded-lg overflow-x-auto">
           {(['all', 'review', 'exploring', 'decided'] as FilterStatus[]).map(status => (
             <button
               key={status}
               onClick={() => setStatusFilter(status)}
-              className={`px-3 py-1.5 text-sm rounded-md transition-colors ${
+              className={`px-4 py-2.5 min-h-11 text-sm font-medium rounded-md transition-colors whitespace-nowrap ${
                 statusFilter === status
                   ? 'bg-white text-stone-900 shadow-sm'
-                  : 'text-stone-500 hover:text-stone-700'
+                  : 'text-stone-500 hover:text-stone-700 active:bg-stone-200'
               }`}
             >
               {status === 'all' ? t('backlogViewAll') : getStatusLabel(status)}
@@ -367,13 +367,13 @@ export function BacklogContent({ backlogItems, releaseNotes }: BacklogContentPro
 
         {/* Category filter */}
         {availableCategories.length > 0 && (
-          <div className="flex gap-1 p-1 bg-stone-100 rounded-lg">
+          <div className="flex gap-1 p-1 bg-stone-100 rounded-lg overflow-x-auto">
             <button
               onClick={() => setCategoryFilter('all')}
-              className={`px-3 py-1.5 text-sm rounded-md transition-colors ${
+              className={`px-4 py-2.5 min-h-11 text-sm font-medium rounded-md transition-colors whitespace-nowrap ${
                 categoryFilter === 'all'
                   ? 'bg-white text-stone-900 shadow-sm'
-                  : 'text-stone-500 hover:text-stone-700'
+                  : 'text-stone-500 hover:text-stone-700 active:bg-stone-200'
               }`}
             >
               {t('backlogViewAll')}
@@ -382,10 +382,10 @@ export function BacklogContent({ backlogItems, releaseNotes }: BacklogContentPro
               <button
                 key={cat}
                 onClick={() => setCategoryFilter(cat)}
-                className={`px-3 py-1.5 text-sm rounded-md transition-colors ${
+                className={`px-4 py-2.5 min-h-11 text-sm font-medium rounded-md transition-colors whitespace-nowrap ${
                   categoryFilter === cat
                     ? 'bg-white text-stone-900 shadow-sm'
-                    : 'text-stone-500 hover:text-stone-700'
+                    : 'text-stone-500 hover:text-stone-700 active:bg-stone-200'
                 }`}
               >
                 {getCategoryLabel(cat)}
