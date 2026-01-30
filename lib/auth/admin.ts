@@ -91,3 +91,13 @@ export async function isSuperAdmin(): Promise<boolean> {
   const adminUser = await getAdminUser()
   return adminUser?.role === 'super_admin'
 }
+
+export async function requireSuperAdmin(): Promise<AdminUser> {
+  const adminUser = await requireAdmin()
+
+  if (adminUser.role !== 'super_admin') {
+    redirect('/admin/teams?error=unauthorized')
+  }
+
+  return adminUser
+}

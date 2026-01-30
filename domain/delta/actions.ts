@@ -117,6 +117,10 @@ export interface TeamStats {
   totalResponses: number
   averageScore: number | null  // Average across all closed sessions
   sessionsByAngle: Record<string, { count: number; avgScore: number | null }>
+  // Trend data for coaching insights
+  trend: 'up' | 'down' | 'stable' | null
+  trendDrivers: string[]  // Angle names driving the trend
+  recentScores: { angle: string; score: number; sessionId: string }[]  // Last 3 sessions for trend
 }
 
 /**
@@ -133,43 +137,35 @@ export async function getTeamStats(teamId: string): Promise<TeamStats> {
     .eq('id', teamId)
     .single()
 
+  const emptyStats: TeamStats = {
+    totalSessions: 0,
+    activeSessions: 0,
+    closedSessions: 0,
+    totalResponses: 0,
+    averageScore: null,
+    sessionsByAngle: {},
+    trend: null,
+    trendDrivers: [],
+    recentScores: [],
+  }
+
   if (!team) {
-    return {
-      totalSessions: 0,
-      activeSessions: 0,
-      closedSessions: 0,
-      totalResponses: 0,
-      averageScore: null,
-      sessionsByAngle: {},
-    }
+    return emptyStats
   }
 
   if (adminUser.role !== 'super_admin' && team.owner_id !== adminUser.id) {
-    return {
-      totalSessions: 0,
-      activeSessions: 0,
-      closedSessions: 0,
-      totalResponses: 0,
-      averageScore: null,
-      sessionsByAngle: {},
-    }
+    return emptyStats
   }
 
-  // Get all sessions for this team
+  // Get all sessions for this team, ordered by creation date
   const { data: sessions } = await supabase
     .from('delta_sessions')
-    .select('id, angle, status')
+    .select('id, angle, status, created_at')
     .eq('team_id', teamId)
+    .order('created_at', { ascending: false })
 
   if (!sessions || sessions.length === 0) {
-    return {
-      totalSessions: 0,
-      activeSessions: 0,
-      closedSessions: 0,
-      totalResponses: 0,
-      averageScore: null,
-      sessionsByAngle: {},
-    }
+    return emptyStats
   }
 
   const activeSessions = sessions.filter(s => s.status === 'active').length
@@ -244,6 +240,50 @@ export async function getTeamStats(teamId: string): Promise<TeamStats> {
     }
   }
 
+  // Calculate trend from recent sessions (need at least 2 closed sessions)
+  // sessionScores is ordered by most recent first (from the sessions query)
+  const recentScores = sessionScores.slice(0, 3).map(s => ({
+    angle: s.angle,
+    score: s.score,
+    sessionId: s.sessionId,
+  }))
+
+  let trend: 'up' | 'down' | 'stable' | null = null
+  let trendDrivers: string[] = []
+
+  if (sessionScores.length >= 2) {
+    // Compare recent vs older scores
+    const recentAvg = sessionScores.slice(0, Math.ceil(sessionScores.length / 2))
+      .reduce((sum, s) => sum + s.score, 0) / Math.ceil(sessionScores.length / 2)
+    const olderAvg = sessionScores.slice(Math.ceil(sessionScores.length / 2))
+      .reduce((sum, s) => sum + s.score, 0) / Math.floor(sessionScores.length / 2)
+
+    const diff = recentAvg - olderAvg
+
+    if (diff > 0.3) {
+      trend = 'up'
+    } else if (diff < -0.3) {
+      trend = 'down'
+    } else {
+      trend = 'stable'
+    }
+
+    // Find drivers: angles with biggest deviation from average
+    const angleDeviations = Object.entries(sessionsByAngle)
+      .filter(([_, data]) => data.avgScore !== null)
+      .map(([angle, data]) => ({
+        angle,
+        deviation: (data.avgScore! - (averageScore || 3)),
+      }))
+      .sort((a, b) => Math.abs(b.deviation) - Math.abs(a.deviation))
+
+    // Take top 2 drivers (angles that pull the trend)
+    trendDrivers = angleDeviations
+      .slice(0, 2)
+      .filter(d => Math.abs(d.deviation) > 0.2)
+      .map(d => d.angle)
+  }
+
   return {
     totalSessions: sessions.length,
     activeSessions,
@@ -251,6 +291,9 @@ export async function getTeamStats(teamId: string): Promise<TeamStats> {
     totalResponses: totalResponses || 0,
     averageScore,
     sessionsByAngle,
+    trend,
+    trendDrivers,
+    recentScores,
   }
 }
 

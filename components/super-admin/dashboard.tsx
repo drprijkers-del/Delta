@@ -80,6 +80,27 @@ export function SuperAdminDashboard({ users: initialUsers }: Props) {
 
       {/* Main content */}
       <main className="max-w-4xl mx-auto p-6">
+        {/* Quick Actions */}
+        <div className="mb-8">
+          <a
+            href="/super-admin/backlog"
+            className="inline-flex items-center gap-3 bg-stone-800 border border-stone-700 rounded-xl p-4 hover:bg-stone-750 hover:border-cyan-700 transition-colors group"
+          >
+            <div className="w-10 h-10 rounded-lg bg-cyan-900/50 flex items-center justify-center text-cyan-400 group-hover:bg-cyan-900">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+              </svg>
+            </div>
+            <div>
+              <div className="font-medium text-white">Backlog & Release Notes</div>
+              <div className="text-sm text-stone-400">Beheer backlog items en release notes voor Delta en Pulse</div>
+            </div>
+            <svg className="w-5 h-5 text-stone-500 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </a>
+        </div>
+
         {/* Stats */}
         <div className="grid grid-cols-2 gap-4 mb-8">
           <div className="bg-stone-800 border border-stone-700 rounded-xl p-4">

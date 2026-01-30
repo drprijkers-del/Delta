@@ -194,6 +194,8 @@ export const translations = {
 
     // Team detail
     teamScore: 'Team Score',
+    teamHealth: 'Team Health',
+    teamHealthSignal: 'Signaal over je team. Geen KPI.',
     sessions: 'Sessies',
     responses: 'Reacties',
     active: 'Actief',
@@ -204,6 +206,45 @@ export const translations = {
     completedSessions: 'Afgeronde sessies',
     noSessionsYet: 'Nog geen sessies',
     noSessionsMessage: 'Kies een invalshoek en start je eerste Delta sessie.',
+
+    // Team overview - trend & monitoring
+    trendLabel: 'Trend',
+    trendUp: 'Stijgend',
+    trendDown: 'Dalend',
+    trendStable: 'Stabiel',
+    trendDrivenBy: 'Vooral door',
+    sessionsCompleted: 'afgerond',
+    responsesCollected: 'totaal',
+    collecting: 'Verzamelen...',
+    needsClosedSessions: 'Na eerste sessie',
+    needsMoreData: 'Te weinig data',
+    needsTwoSessions: 'Min. 2 sessies nodig',
+    teamDiary: 'Team dagboek',
+    teamDiarySubtitle: 'Je interventies over tijd. Kijk terug, spot patronen.',
+    collectiveSignal: 'Samen vormen deze sessies een beeld van je team.',
+
+    // Coach insights (generated from session results)
+    insightFocusSlicing: 'Focus op kleiner snippen van werk.',
+    insightUnplannedWork: 'Belangrijkste spanning: ongepland werk.',
+    insightGoodAlignment: 'Goede alignment, zwakke opvolging.',
+    insightLowEnergy: 'Lage energie, check de sfeer.',
+    insightRefinementWeak: 'Refinement heeft aandacht nodig.',
+    insightFlowBlocked: 'Flow wordt geblokkeerd.',
+    insightScrumCeremonies: 'Ceremonies voelen als verplichting.',
+    insightOwnershipStrong: 'Sterke ownership in het team.',
+    insightOwnershipWeak: 'Ownership moet groeien.',
+    insightCollaborationTension: 'Spanning in samenwerking.',
+    insightWaitingForResults: 'Wacht op meer reacties...',
+
+    // Settings
+    teamActions: 'Acties',
+    clearData: 'Data wissen',
+    deleteTeam: 'Team verwijderen',
+
+    // Pulse link
+    pulseCTA: 'Dagelijkse pulse',
+    pulseTeaser: 'Wil je ook je teams stemming monitoren?',
+    pulseLink: 'Ontdek Pulse',
 
     // Create session
     pickAngle: 'Kies een invalshoek',
@@ -304,7 +345,7 @@ export const translations = {
     angleDemoDesc: 'Zijn stakeholders betrokken? Is feedback waardevol?',
 
     // Feedback backlog
-    backlogTitle: 'Feedback Backlog',
+    backlogTitle: 'Delta Backlog',
     backlogIntro: 'Alle feedback wordt gelezen. Hier zie je wat we overwegen, onderzoeken en beslissen.',
     backlogNotRoadmap: 'Dit is geen roadmap. Dit is transparantie.',
     backlogReadOnly: 'Deze backlog is alleen-lezen. Beslissingen worden genomen door het Delta-team.',
@@ -326,26 +367,27 @@ export const translations = {
     backlogEmpty: 'Geen items in deze categorie.',
     backlogLink: 'Backlog',
 
-    // Backlog guardrails
-    backlogGuardrailsTitle: 'Over deze backlog',
-    backlogGuardrailsText: 'Je kunt hier geen stemmen, reageren of verzoeken indienen. Feedback wordt verzameld via het feedbackformulier en door het Delta-team gecureerd tot deze backlog.',
-    backlogNoVoting: 'Geen stemmen',
-    backlogNoComments: 'Geen reacties',
-    backlogNoRequests: 'Geen direct verzoeken',
-    backlogCuratedBy: 'Beheerd door het Delta-team',
+    // Backlog CTA
+    backlogCTA: 'Delta Backlog',
+    backlogCTAMobile: 'Backlog',
+    backlogCheckFirst: 'Bekijk eerst of je idee al bestaat',
+    backlogAddWish: 'Nieuw idee toevoegen',
 
-    // Feedback form
-    feedbackButton: 'Feedback',
-    feedbackTitle: 'Stuur feedback',
-    feedbackIntro: 'Je feedback helpt Delta verbeteren. We lezen alles, maar reageren niet individueel.',
-    feedbackPlaceholder: 'Wat mis je, wat kan beter, wat werkt goed?',
-    feedbackSubmit: 'Versturen',
-    feedbackSubmitting: 'Versturen...',
-    feedbackThanks: 'Bedankt voor je feedback',
-    feedbackConfirmation: 'We hebben je bericht ontvangen. Bekijk onze backlog om te zien hoe feedback wordt beoordeeld.',
-    feedbackViewBacklog: 'Bekijk backlog',
-    feedbackClose: 'Sluiten',
-    feedbackRequired: 'Schrijf je feedback voordat je verstuurt',
+    // Wish form
+    wishTitle: 'Nieuw idee voor Delta',
+    wishIntro: 'Check eerst of je idee hieronder al bestaat. Zo niet, voeg het toe!',
+    wishLabel: 'Wat wil je graag zien in Delta?',
+    wishPlaceholder: 'Beschrijf kort je idee of wens...',
+    wishWhyLabel: 'Waarom zou dit helpen? (optioneel)',
+    wishWhyPlaceholder: 'Context helpt ons begrijpen...',
+    wishSubmit: 'Idee toevoegen',
+    wishSubmitting: 'Toevoegen...',
+    wishThanks: 'Bedankt!',
+    wishConfirmation: 'Je idee is toegevoegd aan onze backlog. We beoordelen alle ideeën en beslissen transparant.',
+    wishClose: 'Sluiten',
+    wishRequired: 'Beschrijf je idee voordat je verstuurt',
+    wishAlreadyExists: 'Lijkt op een bestaand item?',
+    wishAddAnyway: 'Toch toevoegen',
   },
 
   en: {
@@ -543,6 +585,8 @@ export const translations = {
 
     // Team detail
     teamScore: 'Team Score',
+    teamHealth: 'Team Health',
+    teamHealthSignal: 'Signal about your team. Not a KPI.',
     sessions: 'Sessions',
     responses: 'Responses',
     active: 'Active',
@@ -553,6 +597,45 @@ export const translations = {
     completedSessions: 'Completed Sessions',
     noSessionsYet: 'No sessions yet',
     noSessionsMessage: 'Pick an angle and start your first Delta session.',
+
+    // Team overview - trend & monitoring
+    trendLabel: 'Trend',
+    trendUp: 'Improving',
+    trendDown: 'Declining',
+    trendStable: 'Stable',
+    trendDrivenBy: 'Mainly driven by',
+    sessionsCompleted: 'completed',
+    responsesCollected: 'total',
+    collecting: 'Collecting...',
+    needsClosedSessions: 'After first session',
+    needsMoreData: 'Not enough data',
+    needsTwoSessions: 'Min. 2 sessions needed',
+    teamDiary: 'Team diary',
+    teamDiarySubtitle: 'Your interventions over time. Look back, spot patterns.',
+    collectiveSignal: 'Together these sessions paint a picture of your team.',
+
+    // Coach insights (generated from session results)
+    insightFocusSlicing: 'Focus on slicing work smaller.',
+    insightUnplannedWork: 'Main tension: unplanned work.',
+    insightGoodAlignment: 'Good alignment, weak follow-through.',
+    insightLowEnergy: 'Low energy, check the mood.',
+    insightRefinementWeak: 'Refinement needs attention.',
+    insightFlowBlocked: 'Flow is being blocked.',
+    insightScrumCeremonies: 'Ceremonies feel like obligations.',
+    insightOwnershipStrong: 'Strong ownership in the team.',
+    insightOwnershipWeak: 'Ownership needs to grow.',
+    insightCollaborationTension: 'Tension in collaboration.',
+    insightWaitingForResults: 'Waiting for more responses...',
+
+    // Settings
+    teamActions: 'Actions',
+    clearData: 'Clear data',
+    deleteTeam: 'Delete team',
+
+    // Pulse link
+    pulseCTA: 'Daily pulse',
+    pulseTeaser: 'Want to monitor your team\'s mood too?',
+    pulseLink: 'Discover Pulse',
 
     // Create session
     pickAngle: 'Pick an angle',
@@ -653,7 +736,7 @@ export const translations = {
     angleDemoDesc: 'Are stakeholders engaged? Is feedback valuable?',
 
     // Feedback backlog
-    backlogTitle: 'Feedback Backlog',
+    backlogTitle: 'Delta Backlog',
     backlogIntro: 'All feedback is read. Here you can see what we\'re considering, exploring, and deciding.',
     backlogNotRoadmap: 'This is not a roadmap. This is transparency.',
     backlogReadOnly: 'This backlog is read-only. Decisions are made by the Delta team.',
@@ -675,26 +758,27 @@ export const translations = {
     backlogEmpty: 'No items in this category.',
     backlogLink: 'Backlog',
 
-    // Backlog guardrails
-    backlogGuardrailsTitle: 'About this backlog',
-    backlogGuardrailsText: 'You cannot vote, comment, or submit requests here. Feedback is collected via the feedback form and curated by the Delta team into this backlog.',
-    backlogNoVoting: 'No voting',
-    backlogNoComments: 'No comments',
-    backlogNoRequests: 'No direct requests',
-    backlogCuratedBy: 'Curated by the Delta team',
+    // Backlog CTA
+    backlogCTA: 'Delta Backlog',
+    backlogCTAMobile: 'Backlog',
+    backlogCheckFirst: 'First check if your idea already exists',
+    backlogAddWish: 'Add new idea',
 
-    // Feedback form
-    feedbackButton: 'Feedback',
-    feedbackTitle: 'Send feedback',
-    feedbackIntro: 'Your feedback helps improve Delta. We read everything, but don\'t respond individually.',
-    feedbackPlaceholder: 'What\'s missing, what could be better, what works well?',
-    feedbackSubmit: 'Send',
-    feedbackSubmitting: 'Sending...',
-    feedbackThanks: 'Thanks for your feedback',
-    feedbackConfirmation: 'We received your message. Check our backlog to see how feedback is evaluated.',
-    feedbackViewBacklog: 'View backlog',
-    feedbackClose: 'Close',
-    feedbackRequired: 'Write your feedback before sending',
+    // Wish form
+    wishTitle: 'New idea for Delta',
+    wishIntro: 'First check if your idea already exists below. If not, add it!',
+    wishLabel: 'What would you like to see in Delta?',
+    wishPlaceholder: 'Briefly describe your idea or wish...',
+    wishWhyLabel: 'Why would this help? (optional)',
+    wishWhyPlaceholder: 'Context helps us understand...',
+    wishSubmit: 'Add idea',
+    wishSubmitting: 'Adding...',
+    wishThanks: 'Thank you!',
+    wishConfirmation: 'Your idea has been added to our backlog. We evaluate all ideas and decide transparently.',
+    wishClose: 'Close',
+    wishRequired: 'Describe your idea before submitting',
+    wishAlreadyExists: 'Similar to an existing item?',
+    wishAddAnyway: 'Add anyway',
   },
 } as const
 

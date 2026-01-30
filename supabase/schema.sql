@@ -782,3 +782,144 @@ GRANT EXECUTE ON FUNCTION submit_delta_response TO anon;
 GRANT EXECUTE ON FUNCTION get_delta_response_count TO anon;
 GRANT EXECUTE ON FUNCTION get_delta_responses TO authenticated;
 GRANT EXECUTE ON FUNCTION generate_session_code TO authenticated;
+
+-- ============================================================================
+-- BACKLOG ITEMS & RELEASE NOTES
+-- Shared between Delta and Pulse, managed by Super Admin
+-- ============================================================================
+
+-- Product types for backlog items and release notes
+CREATE TYPE product_type AS ENUM ('delta', 'pulse', 'shared');
+
+-- Backlog categories
+CREATE TYPE backlog_category AS ENUM ('ux', 'statements', 'analytics', 'integration', 'features');
+
+-- Backlog status
+CREATE TYPE backlog_status AS ENUM ('review', 'exploring', 'decided');
+
+-- Backlog decision (when status = decided)
+CREATE TYPE backlog_decision AS ENUM ('building', 'not_doing');
+
+-- Backlog items table
+CREATE TABLE backlog_items (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  product product_type NOT NULL DEFAULT 'delta',
+  category backlog_category NOT NULL,
+  status backlog_status NOT NULL DEFAULT 'review',
+  decision backlog_decision,
+
+  -- Multilingual content
+  title_nl TEXT NOT NULL,
+  title_en TEXT NOT NULL,
+  source_nl TEXT NOT NULL,
+  source_en TEXT NOT NULL,
+  our_take_nl TEXT NOT NULL,
+  our_take_en TEXT NOT NULL,
+  rationale_nl TEXT,
+  rationale_en TEXT,
+
+  -- Dates
+  reviewed_at DATE NOT NULL DEFAULT CURRENT_DATE,
+  decided_at DATE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+
+  -- Ensure decision is set when status is 'decided'
+  CONSTRAINT decision_required_when_decided CHECK (
+    (status = 'decided' AND decision IS NOT NULL) OR
+    (status != 'decided' AND decision IS NULL)
+  )
+);
+
+-- Release notes table
+CREATE TABLE release_notes (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  product product_type NOT NULL DEFAULT 'delta',
+  version TEXT NOT NULL,
+
+  -- Multilingual content
+  title_nl TEXT NOT NULL,
+  title_en TEXT NOT NULL,
+  description_nl TEXT NOT NULL,
+  description_en TEXT NOT NULL,
+
+  -- What changed (list of changes as JSON array)
+  changes JSONB NOT NULL DEFAULT '[]',
+
+  -- Dates
+  released_at DATE NOT NULL DEFAULT CURRENT_DATE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- Indexes for common queries
+CREATE INDEX idx_backlog_items_product ON backlog_items(product);
+CREATE INDEX idx_backlog_items_status ON backlog_items(status);
+CREATE INDEX idx_backlog_items_category ON backlog_items(category);
+CREATE INDEX idx_release_notes_product ON release_notes(product);
+CREATE INDEX idx_release_notes_released_at ON release_notes(released_at DESC);
+
+-- Enable RLS
+ALTER TABLE backlog_items ENABLE ROW LEVEL SECURITY;
+ALTER TABLE release_notes ENABLE ROW LEVEL SECURITY;
+
+-- RLS Policies for backlog_items
+-- Public can view all items (for the backlog page)
+CREATE POLICY "backlog_items_public_read" ON backlog_items
+  FOR SELECT
+  USING (true);
+
+-- Only super_admin can insert/update/delete
+CREATE POLICY "backlog_items_super_admin_insert" ON backlog_items
+  FOR INSERT
+  WITH CHECK (is_super_admin());
+
+CREATE POLICY "backlog_items_super_admin_update" ON backlog_items
+  FOR UPDATE
+  USING (is_super_admin())
+  WITH CHECK (is_super_admin());
+
+CREATE POLICY "backlog_items_super_admin_delete" ON backlog_items
+  FOR DELETE
+  USING (is_super_admin());
+
+-- RLS Policies for release_notes
+-- Public can view all release notes
+CREATE POLICY "release_notes_public_read" ON release_notes
+  FOR SELECT
+  USING (true);
+
+-- Only super_admin can insert/update/delete
+CREATE POLICY "release_notes_super_admin_insert" ON release_notes
+  FOR INSERT
+  WITH CHECK (is_super_admin());
+
+CREATE POLICY "release_notes_super_admin_update" ON release_notes
+  FOR UPDATE
+  USING (is_super_admin())
+  WITH CHECK (is_super_admin());
+
+CREATE POLICY "release_notes_super_admin_delete" ON release_notes
+  FOR DELETE
+  USING (is_super_admin());
+
+-- Grant permissions
+GRANT SELECT ON backlog_items TO anon;
+GRANT SELECT ON backlog_items TO authenticated;
+GRANT ALL ON backlog_items TO authenticated;
+
+GRANT SELECT ON release_notes TO anon;
+GRANT SELECT ON release_notes TO authenticated;
+GRANT ALL ON release_notes TO authenticated;
+
+-- Updated_at trigger for backlog_items
+CREATE TRIGGER update_backlog_items_updated_at
+  BEFORE UPDATE ON backlog_items
+  FOR EACH ROW
+  EXECUTE FUNCTION update_updated_at();
+
+-- Updated_at trigger for release_notes
+CREATE TRIGGER update_release_notes_updated_at
+  BEFORE UPDATE ON release_notes
+  FOR EACH ROW
+  EXECUTE FUNCTION update_updated_at();
