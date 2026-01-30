@@ -8,7 +8,6 @@ import { getStatements } from '@/domain/delta/statements'
 import { closeSession, deleteSession } from '@/domain/delta/actions'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import { Modal } from '@/components/ui/modal'
 import { useTranslation, TranslationFunction } from '@/lib/i18n/context'
 
@@ -110,8 +109,19 @@ export function SessionDetailContent({ session, synthesis, shareLink }: SessionD
         </p>
       </div>
 
-      {/* Share link (active sessions only) */}
-      {isActive && shareLink && (
+      {/* Session Setup View (before 3 responses) */}
+      {isActive && session.response_count < 3 && shareLink && (
+        <SessionSetupView
+          shareLink={shareLink}
+          session={session}
+          copied={copied}
+          onCopy={handleCopy}
+          t={t}
+        />
+      )}
+
+      {/* Share link (when 3+ responses, compact view) */}
+      {isActive && session.response_count >= 3 && shareLink && (
         <Card className="mb-8 border-cyan-200 bg-cyan-50">
           <CardContent className="py-4">
             <div className="flex flex-col sm:flex-row sm:items-center gap-4">
@@ -123,45 +133,6 @@ export function SessionDetailContent({ session, synthesis, shareLink }: SessionD
                 {copied ? t('copied') : t('copyLink')}
               </Button>
             </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Waiting for responses */}
-      {isActive && session.response_count < 3 && (
-        <Card className="mb-8">
-          <CardContent className="py-8 text-center">
-            <h3 className="text-lg font-medium text-stone-900 mb-2">{t('waitingForResponses')}</h3>
-            <p className="text-stone-500">
-              {session.response_count === 0
-                ? t('waitingMessage')
-                : `${session.response_count} ${t('waitingMessagePartial')}`
-              }
-            </p>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Statement preview (when < 3 responses) */}
-      {isActive && session.response_count < 3 && (
-        <Card className="mb-8">
-          <CardHeader>
-            <h2 className="text-lg font-semibold text-stone-900">{t('statementsPreview')}</h2>
-            <p className="text-sm text-stone-500">{t('statementsPreviewSubtitle')}</p>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {getStatements(session.angle as DeltaAngle).map((statement, i) => (
-              <div key={statement.id} className="p-3 rounded-lg bg-stone-50">
-                <div className="flex items-start gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-stone-200 text-stone-400 flex items-center justify-center text-sm font-bold shrink-0">
-                    —
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-stone-600 text-sm leading-relaxed">{statement.text}</p>
-                  </div>
-                </div>
-              </div>
-            ))}
           </CardContent>
         </Card>
       )}
@@ -452,6 +423,187 @@ function StatementRow({ item, rank, t }: { item: StatementScore; rank: number; t
           </div>
         ))}
       </div>
+    </div>
+  )
+}
+
+// Session Setup View - Coach-friendly pre-response interface
+function SessionSetupView({
+  shareLink,
+  session,
+  copied,
+  onCopy,
+  t
+}: {
+  shareLink: string
+  session: DeltaSessionWithStats
+  copied: boolean
+  onCopy: () => void
+  t: TranslationFunction
+}) {
+  const [showStatements, setShowStatements] = useState(false)
+  const statements = getStatements(session.angle as DeltaAngle)
+
+  return (
+    <div className="space-y-6 mb-8">
+      {/* Step 1: Session Link */}
+      <Card className="border-cyan-200 bg-linear-to-br from-cyan-50 to-white">
+        <CardContent className="py-6">
+          <div className="flex items-center gap-2 mb-4">
+            <div className="w-8 h-8 rounded-full bg-cyan-500 text-white flex items-center justify-center text-sm font-bold">
+              1
+            </div>
+            <h3 className="font-semibold text-stone-900">{t('readyToShare')}</h3>
+          </div>
+
+          {/* Link display */}
+          <div className="bg-white border border-stone-200 rounded-xl p-4 mb-4">
+            <code className="text-sm text-cyan-700 break-all block">{shareLink}</code>
+          </div>
+
+          {/* Actions: Open (primary) + Copy (secondary) */}
+          <div className="flex gap-3">
+            <a
+              href={shareLink}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex-1"
+            >
+              <Button className="w-full">
+                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                </svg>
+                {t('openLink')}
+              </Button>
+            </a>
+            <Button onClick={onCopy} variant="secondary" className="shrink-0">
+              {copied ? (
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+              ) : (
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                </svg>
+              )}
+            </Button>
+          </div>
+
+          <p className="text-xs text-stone-500 mt-3">{t('previewFirst')}</p>
+        </CardContent>
+      </Card>
+
+      {/* Step 2: Sharing Guidance */}
+      <Card className="border-stone-200">
+        <CardContent className="py-5">
+          <div className="flex items-start gap-3">
+            <div className="w-8 h-8 rounded-full bg-stone-200 text-stone-600 flex items-center justify-center text-sm font-bold shrink-0">
+              2
+            </div>
+            <div>
+              <h3 className="font-semibold text-stone-900 mb-1">{t('shareWithTeam')}</h3>
+              <p className="text-sm text-stone-600 leading-relaxed">
+                {t('sharingTip')}
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Step 3: Statements Preview (collapsed) */}
+      <Card className="border-stone-200">
+        <CardContent className="py-5">
+          <button
+            onClick={() => setShowStatements(!showStatements)}
+            className="w-full flex items-center justify-between"
+          >
+            <div className="flex items-start gap-3">
+              <div className="w-8 h-8 rounded-full bg-stone-200 text-stone-600 flex items-center justify-center text-sm font-bold shrink-0">
+                3
+              </div>
+              <div className="text-left">
+                <h3 className="font-semibold text-stone-900">
+                  {t('viewStatements')} <span className="text-stone-500 font-normal">({statements.length})</span>
+                </h3>
+                <p className="text-sm text-stone-500">{t('statementsNote')}</p>
+              </div>
+            </div>
+            <svg
+              className={`w-5 h-5 text-stone-400 transition-transform ${showStatements ? 'rotate-180' : ''}`}
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+
+          {showStatements && (
+            <div className="mt-4 ml-11 space-y-2">
+              {statements.map((statement, i) => (
+                <div key={statement.id} className="p-3 rounded-lg bg-stone-50 text-sm text-stone-700">
+                  {i + 1}. {statement.text}
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* What you will get */}
+      <Card className="border-stone-200 bg-stone-50">
+        <CardContent className="py-5">
+          <h3 className="font-semibold text-stone-900 mb-4">{t('whatYouWillGet')}</h3>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full bg-cyan-500" />
+                <span className="text-sm font-medium text-stone-800">{t('metricCapability')}</span>
+              </div>
+              <p className="text-xs text-stone-500 ml-4">{t('metricCapabilityDesc')}</p>
+            </div>
+
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full bg-purple-500" />
+                <span className="text-sm font-medium text-stone-800">{t('metricAlignment')}</span>
+              </div>
+              <p className="text-xs text-stone-500 ml-4">{t('metricAlignmentDesc')}</p>
+            </div>
+
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full bg-amber-500" />
+                <span className="text-sm font-medium text-stone-800">{t('metricFocus')}</span>
+              </div>
+              <p className="text-xs text-stone-500 ml-4">{t('metricFocusDesc')}</p>
+            </div>
+
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full bg-green-500" />
+                <span className="text-sm font-medium text-stone-800">{t('metricExperiment')}</span>
+              </div>
+              <p className="text-xs text-stone-500 ml-4">{t('metricExperimentDesc')}</p>
+            </div>
+          </div>
+
+          <p className="text-xs text-stone-400 mt-4 pt-4 border-t border-stone-200">
+            {t('minimumResponses')}
+          </p>
+        </CardContent>
+      </Card>
+
+      {/* Response counter */}
+      {session.response_count > 0 && (
+        <div className="flex items-center justify-center gap-2 py-4 text-sm">
+          <div className="w-2 h-2 rounded-full bg-cyan-500 animate-pulse" />
+          <span className="text-stone-600">
+            {session.response_count} {t('waitingMessagePartial')}
+          </span>
+        </div>
+      )}
     </div>
   )
 }

@@ -245,6 +245,24 @@ export const translations = {
     statementsPreview: 'Stellingen preview',
     statementsPreviewSubtitle: 'Dit zijn de stellingen waar je team op gaat reageren.',
 
+    // Session setup (coach view)
+    openLink: 'Open sessie',
+    previewFirst: 'Bekijk eerst zelf de ervaring',
+    sharingTip: 'Deel via Slack, Teams of WhatsApp. Vraag het team om binnen 24 uur te reageren — hoe verser, hoe beter.',
+    viewStatements: 'Bekijk stellingen',
+    statementsNote: 'Scherpe, observeerbare stellingen. Geen meningen, maar feiten die je kunt waarnemen.',
+    whatYouWillGet: 'Wat je krijgt na de sessie',
+    metricCapability: 'Capability status',
+    metricCapabilityDesc: 'Werkt dit aspect of heeft het team hier moeite mee?',
+    metricAlignment: 'Team alignment',
+    metricAlignmentDesc: 'Ziet het team dit hetzelfde, of zijn er verschillende percepties?',
+    metricFocus: 'Eén focus',
+    metricFocusDesc: 'Het belangrijkste verbeterpunt, automatisch bepaald.',
+    metricExperiment: 'Eén experiment',
+    metricExperimentDesc: 'Een concrete actie om direct mee te starten.',
+    minimumResponses: 'Minimaal 3 reacties nodig voor betrouwbare inzichten.',
+    readyToShare: 'Klaar om te delen',
+
     // Participation
     deltaSession: 'Delta Sessie',
     howItWorks: 'Hoe het werkt',
@@ -531,6 +549,24 @@ export const translations = {
     disagreement: 'Disagreement',
     statementsPreview: 'Statements Preview',
     statementsPreviewSubtitle: 'These are the statements your team will respond to.',
+
+    // Session setup (coach view)
+    openLink: 'Open session',
+    previewFirst: 'Preview the experience yourself first',
+    sharingTip: 'Share via Slack, Teams or WhatsApp. Ask the team to respond within 24 hours — fresher is better.',
+    viewStatements: 'View statements',
+    statementsNote: 'Sharp, observable statements. Not opinions, but facts you can observe.',
+    whatYouWillGet: 'What you will get after the session',
+    metricCapability: 'Capability status',
+    metricCapabilityDesc: 'Is this aspect working or is the team struggling here?',
+    metricAlignment: 'Team alignment',
+    metricAlignmentDesc: 'Does the team see this the same way, or are there different perceptions?',
+    metricFocus: 'One focus',
+    metricFocusDesc: 'The most important improvement area, automatically determined.',
+    metricExperiment: 'One experiment',
+    metricExperimentDesc: 'A concrete action to start with immediately.',
+    minimumResponses: 'Minimum 3 responses needed for reliable insights.',
+    readyToShare: 'Ready to share',
 
     // Participation
     deltaSession: 'Delta Session',
