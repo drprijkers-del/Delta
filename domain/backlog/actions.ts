@@ -351,3 +351,40 @@ export async function deleteReleaseNote(id: string): Promise<{ success: boolean;
   revalidatePath('/super-admin/backlog')
   return { success: true }
 }
+
+// ============================================================================
+// PUBLIC WISH SUBMISSION
+// ============================================================================
+
+/**
+ * Submit a wish from the public backlog page (creates a backlog item in 'review' status)
+ */
+export async function submitWish(wish: string, why: string): Promise<{ success: boolean; error?: string }> {
+  const supabase = await createClient()
+
+  const item = {
+    product: 'delta' as ProductType,
+    category: 'features' as BacklogCategory,
+    status: 'review' as BacklogStatus,
+    decision: null,
+    title_nl: wish,
+    title_en: wish,
+    source_nl: why || 'Ingediend via backlog pagina',
+    source_en: why || 'Submitted via backlog page',
+    our_take_nl: 'Nog te beoordelen',
+    our_take_en: 'To be reviewed',
+    reviewed_at: new Date().toISOString().split('T')[0],
+  }
+
+  const { error } = await supabase
+    .from('backlog_items')
+    .insert(item)
+
+  if (error) {
+    console.error('Error submitting wish:', error)
+    return { success: false, error: error.message }
+  }
+
+  revalidatePath('/feedback/backlog')
+  return { success: true }
+}

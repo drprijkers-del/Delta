@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { BacklogItem, ReleaseNote, BacklogCategory, BacklogStatus, ProductType } from '@/domain/backlog/actions'
+import { BacklogItem, ReleaseNote, BacklogCategory, BacklogStatus, ProductType, submitWish } from '@/domain/backlog/actions'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { useTranslation, useLanguage, TranslationFunction } from '@/lib/i18n/context'
@@ -138,7 +138,15 @@ export function BacklogContent({ backlogItems, releaseNotes }: BacklogContentPro
     }
 
     setWishState('submitting')
-    await new Promise(resolve => setTimeout(resolve, 800))
+
+    const result = await submitWish(wishText.trim(), wishWhy.trim())
+
+    if (!result.success) {
+      setWishError(result.error || 'Something went wrong')
+      setWishState('form')
+      return
+    }
+
     setWishState('success')
     setWishText('')
     setWishWhy('')
