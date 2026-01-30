@@ -512,7 +512,7 @@ export function BacklogContent({ backlogItems, releaseNotes }: BacklogContentPro
             </p>
           </div>
           <a
-            href="https://pulse.delta.app"
+            href="https://mood-app-one.vercel.app"
             target="_blank"
             rel="noopener noreferrer"
             className="text-sm text-purple-600 hover:text-purple-700 font-medium"

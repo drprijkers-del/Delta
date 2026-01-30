@@ -463,7 +463,7 @@ export function TeamDetailContent({ team, sessions, stats }: TeamDetailContentPr
         <div className="flex items-center justify-center gap-2 text-sm text-stone-400">
           <span>{t('pulseTeaser')}</span>
           <a
-            href="https://pulse.pinkpollos.com"
+            href="https://mood-app-one.vercel.app"
             target="_blank"
             rel="noopener noreferrer"
             className="text-cyan-600 hover:text-cyan-700 font-medium"
