@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist } from "next/font/google";
 import { LanguageProvider } from "@/lib/i18n/context";
+import { BacklogLink } from "@/components/ui/backlog-link";
 import "./globals.css";
 
 const geist = Geist({
@@ -23,6 +24,7 @@ export default function RootLayout({
       <body className={`${geist.variable} font-sans antialiased bg-stone-50 text-stone-900`}>
         <LanguageProvider>
           {children}
+          <BacklogLink />
         </LanguageProvider>
       </body>
     </html>
