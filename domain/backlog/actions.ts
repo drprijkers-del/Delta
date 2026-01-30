@@ -376,18 +376,13 @@ export async function submitWish(wish: string, why: string): Promise<{ success: 
     reviewed_at: new Date().toISOString().split('T')[0],
   }
 
-  console.log('[submitWish] Inserting:', item)
-
-  const { data, error } = await supabase
+  const { error } = await supabase
     .from('backlog_items')
     .insert(item)
-    .select()
-
-  console.log('[submitWish] Result:', { data, error })
 
   if (error) {
     console.error('Error submitting wish:', error)
-    return { success: false, error: `${error.message} (${error.code})` }
+    return { success: false, error: error.message }
   }
 
   revalidatePath('/feedback/backlog')
